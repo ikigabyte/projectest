@@ -2,28 +2,28 @@
   "name": "projectest",
   "tree": {
     "$className": "DataModel",
+    "$ignoreUnknownInstances": true,
 
     "ReplicatedStorage": {
-      "Shared": {
-        "$path": "src/shared"
-      }
+      "$ignoreUnknownInstances": true,
+      "$path": "src/ReplicatedStorage"
     },
 
     "ServerScriptService": {
-      "Server": {
-        "$path": "src/server"
-      }
+      "$ignoreUnknownInstances": true,
+      "$path": "src/ServerScriptService"
     },
 
     "StarterPlayer": {
+      "$ignoreUnknownInstances": true,
       "StarterPlayerScripts": {
-        "Client": {
-          "$path": "src/client"
-        }
+        "$ignoreUnknownInstances": true,
+        "$path": "src/StarterPlayerScripts"
       }
     },
 
     "Workspace": {
+      "$ignoreUnknownInstances": true,
       "$properties": {
         "FilteringEnabled": true
       },
@@ -51,6 +51,7 @@
       }
     },
     "Lighting": {
+      "$ignoreUnknownInstances": true,
       "$properties": {
         "Ambient": [
           0,

@@ -1,0 +1,15 @@
+title = "Scrypt"
+gitRepoUrl = "https://github.com/zblox164/Scrypt"
+gitSourceBranch = "master"
+
+[home]
+enabled = true
+includeReadme = true
+
+[docusaurus]
+url = "https://ikigabyte.github.io"
+baseUrl = "/projectest"
+onBrokenLinks = "throw"
+onBrokenMarkdownLinks = "warn"
+favicon = "./media/test.png"
+tagline = "Home"
