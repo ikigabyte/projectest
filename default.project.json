@@ -15,6 +15,9 @@
     },
 
     "StarterPlayer": {
+      "$properties": {
+        "CharacterWalkSpeed": 34
+      },
       "$ignoreUnknownInstances": true,
       "StarterPlayerScripts": {
         "$ignoreUnknownInstances": true,

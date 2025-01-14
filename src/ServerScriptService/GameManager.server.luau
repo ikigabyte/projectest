@@ -2,9 +2,9 @@
 local Scrypt = require(game:GetService("ReplicatedStorage").Scrypt)
 Scrypt.Init():Wait()
 
--- local DataStoreService = Scrypt.Services.DataStoreService
--- local RoundController = Scrypt.GetService("RoundService")
 
+-- local DataStoreService = Scrypt.Services.DataStoreService
+local RoundController = Scrypt.GetService("RoundService")
 -- Function to send a packet to the client
 local function sendPacketToClient(player: Player, message: string)
     local packetData = {
@@ -21,7 +21,18 @@ end
 
 -- Example usage: Send a welcome message to players when they join
 Scrypt.Services.Players.PlayerAdded:Connect(function(player: Player)
+    Scrypt.ServerNetwork.SendPacketToClient("WelcomeMessage", {
+        Address = player,
+        Reliable = true,
+        Data = "NewPacket"
+    })
     task.delay(2, function()
         sendPacketToClient(player, "Welcome to the game!")
     end)
+    
 end)
+
+repeat task.wait() until #Scrypt.Services.Players:GetPlayers() > 0
+
+RoundController:Init()
+

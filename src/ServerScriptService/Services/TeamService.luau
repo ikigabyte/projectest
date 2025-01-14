@@ -15,11 +15,19 @@ local function CreateTeam(Name: string, TeamColor: BrickColor, Teams: Instance):
     local Team = Teams:FindFirstChild(Name):: Team or Instance.new("Team", Teams)
     Team.Name = Name
     Team.TeamColor = TeamColor
+    print("Craeted the te")
 
     return Team
 end
 
 local function AssignTeam(Player: Player, Team: Team)
+    Player.Team = Team
+end
+
+
+
+function TeamService.SwitchTeams(Player: Player, Team: Team)
+    -- TODO Make sure to check if the progress of the stairs is not over 90 percent
     Player.Team = Team
 end
 
@@ -36,12 +44,27 @@ function TeamService.CreateTeams(TeamsLocation: Instance, ...: TeamParams): ...T
     return unpack(Teams):: Team
 end
 
+
+function TeamService.GetBaseChild(TeamName : string, ChildName : string) : Folder
+    local MainFolder = workspace:FindFirstChild("Bases"):: Folder
+    local TeamFolder = MainFolder:FindFirstChild(TeamName)
+    assert(TeamFolder, "Team folder not found in workspace.")
+    if ChildName == nil then
+        return TeamFolder
+    else
+		local Child = TeamFolder:FindFirstChild(ChildName)
+        assert(Child, "Child not found in team folder.")
+        return Child
+        -- warn("Child not found in team folder.")
+    end
+    return TeamFolder
+end
+
 function TeamService.FillTeamsEvenly(...: Team)
     local Seed = os.time()
     local RandomSet = Random.new(Seed)
     local Teams = {...}
     local PlayingPlayers = Scrypt.Services.Players:GetPlayers()
-
     for _, player in ipairs(PlayingPlayers) do
         local RandomTeam = Teams[RandomSet:NextInteger(1, #Teams)]
         AssignTeam(player, RandomTeam)
@@ -49,3 +72,5 @@ function TeamService.FillTeamsEvenly(...: Team)
 
     -- TODO make it so that teams are filled evenly instead of just randomly
 end
+
+return TeamService
