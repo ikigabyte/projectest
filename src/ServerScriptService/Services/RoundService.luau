@@ -21,8 +21,6 @@ function RoundService.Intermission(Duration: number)
     print("Intermission ended.")
 end
 
--- 2. Team Assignment Function
-
 -- 3. Teleport to Spawn Points Function
 function RoundService.TeleportPlayers()
     local TeamFolder = workspace:FindFirstChild("Teams"):: Folder
