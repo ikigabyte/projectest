@@ -6,7 +6,7 @@
 	@file ClientNetwork.lua
     @server
     @author zblox164
-    @version 0.0.4-alpha
+    @version 0.0.41-alpha
     @since 2024-12-17
 --]]
 
@@ -222,7 +222,7 @@ local function DetermineRemoteConfig(Params: RemoteParams): Result<RemoteCreateR
 end
 
 -- Creates a remote from a request from the client and returns it
-local function CreateClientRemote(Params: RemoteParams): Instance
+local function CreateClientRemote(Params: RemoteParams): string
     local ValidationResult = ValidateRemoteParams(Params)
     if not ValidationResult.Success then
         return error(ValidationResult.Error)
@@ -234,12 +234,12 @@ local function CreateClientRemote(Params: RemoteParams): Instance
     end
     
     local Config = ConfigResult.Value:: RemoteCreateResult
-    
+
     -- Create instance (this is the only impure operation)
     local NewRemote = Instance.new(Config.RemoteType)
     NewRemote.Name = Config.Name
-    
-    return NewRemote
+
+    return NewRemote.Name
 end
 
 local ServerNetwork = {}
@@ -286,7 +286,7 @@ end
     @within ServerNetwork
     Sends data to a specific player from the server.
 ]=]
-function ServerNetwork.SendPacketToPlayer(Name: string, PacketData: ServerPacketData)
+function ServerNetwork.SendPacketToClient(Name: string, PacketData: ServerPacketData)
     assert(Name, "Expected string as first argument.")
     assert(PacketData, "Expected ServerPacketData as second argument.")
     
@@ -303,9 +303,9 @@ end
     @param Packet Packet
     @param IsReliable boolean
     @within ServerNetwork
-    Sends data to all players in a server.
+    Sends data to all clients in a server.
 ]=]
-function ServerNetwork.SendPacketToAllPlayers(Name: string, Packet: Packet, IsReliable: boolean)
+function ServerNetwork.SendPacketToAllClients(Name: string, Packet: Packet, IsReliable: boolean)
     assert(Name, "Expected string as first argument.")
     assert(Packet, "Expected ServerPacketData as second argument.")
 
@@ -316,7 +316,7 @@ function ServerNetwork.SendPacketToAllPlayers(Name: string, Packet: Packet, IsRe
             Reliable = IsReliable
         }:: ServerPacketData
 
-        ServerNetwork.SendPacketToPlayer(Name, PlayerPacket)
+        ServerNetwork.SendPacketToClient(Name, PlayerPacket)
     end
 end
 
@@ -325,7 +325,7 @@ end
     @param Address Player
     @param IsReliable boolean
     @within ServerNetwork
-    Pings a specific player. This function should be used when you want to communicate with the client but don't want to send any data.
+    Pings a specific client. This function should be used when you want to communicate with the client but don't want to send any data.
 ]=]
 function ServerNetwork.PingClient(Name: string, Address: Player, IsReliable: boolean)
     assert(Name, "Expected string as first argument.")
@@ -344,7 +344,7 @@ end
     @param Name string
     @param IsReliable boolean
     @within ServerNetwork
-    Pings all players. This function should be used when you want to communicate with all clients but don't want to send any data.
+    Pings all clients. This function should be used when you want to communicate with all clients but don't want to send any data.
 ]=]
 function ServerNetwork.PingAllClients(Name: string, IsReliable: boolean)
     assert(Name, "Expected string as first argument.")

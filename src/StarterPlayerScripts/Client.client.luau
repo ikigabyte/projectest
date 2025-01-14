@@ -5,6 +5,6 @@ Scrypt.Init():Wait()
 
 -- task.wait(3)
 
-Scrypt.ClientNetwork.ListenForPacket("WelcomeMessage", function(packetData)
-	print("Received welcome message: " .. packetData.Data)
+Scrypt.ClientNetwork.ListenForPacket("WelcomeMessage", true, function(packetData)
+	print("Received welcome message: " .. tostring(packetData))
 end)

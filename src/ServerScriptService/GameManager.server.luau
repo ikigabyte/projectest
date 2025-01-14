@@ -1,30 +1,27 @@
 --!strict
--- local DataStoreService = game:GetService("DataStoreService")
 local Scrypt = require(game:GetService("ReplicatedStorage").Scrypt)
 Scrypt.Init():Wait()
 
--- local RoundController = require(Scrypt.Services.ServerScriptService.RoundController)
+-- local DataStoreService = Scrypt.Services.DataStoreService
+-- local RoundController = Scrypt.GetService("RoundService")
 
--- task.wait(2)
-
-
-local ServerNetwork = Scrypt.ServerNetwork
 -- Function to send a packet to the client
-local function sendPacketToClient(player, message)
+local function sendPacketToClient(player: Player, message: string)
     local packetData = {
-        Data = message,
+        Address = player,
         Reliable = true, -- Ensure the packet is delivered reliably
-        Address = player
-    }
+        Data = message,
+    }:: Scrypt.ServerPacketData
 
     -- Use SendPacket to send the packet to the specific player
 
-    ServerNetwork.SendPacketToPlayer(player.Name, packetData)
+    Scrypt.ServerNetwork.SendPacketToClient("WelcomeMessage", packetData)
     print("sent the packet here")
 end
 
 -- Example usage: Send a welcome message to players when they join
-game.Players.PlayerAdded:Connect(function(player)
-    task.wait(2) -- Wait before sending the message
-    sendPacketToClient(player, "Welcome to the game!")
+Scrypt.Services.Players.PlayerAdded:Connect(function(player: Player)
+    task.delay(2, function()
+        sendPacketToClient(player, "Welcome to the game!")
+    end)
 end)
