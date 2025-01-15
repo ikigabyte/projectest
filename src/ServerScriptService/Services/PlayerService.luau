@@ -1,5 +1,5 @@
 --!strict
--- File: ServerScriptService/Modules/GameModule.luau
+-- File: ServerScriptService/Modules/PlayerService.luau
 
 local Scrypt = require(game:GetService("ReplicatedStorage").Scrypt)
 Scrypt.Init()

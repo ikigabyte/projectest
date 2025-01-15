@@ -1,5 +1,5 @@
 --!strict
--- File: ServerScriptService/Modules/RounService.luau
+-- File: ServerScriptService/Modules/RoundService.luau
 
 local Scrypt = require(game:GetService("ReplicatedStorage").Scrypt)
 Scrypt.Init()
@@ -9,7 +9,6 @@ local RoundService = {}
 local Players = Scrypt.Services.Players
 local TeamService = Scrypt.GetService("TeamService")
 local PlayerService = Scrypt.GetService("PlayerService")
-local Zone = Scrypt.GetModule("Zone")
 
 type RulesType = {
     IntermissionTime: number,
@@ -18,197 +17,85 @@ type RulesType = {
     PlayersNeeded: number,
 }
 
-local Rules : RulesType = {
+local RULES : RulesType = {
     IntermissionTime = 2,
     SpawnTime = 5,
     RoundTime = 300,
     PlayersNeeded = 1,
 }
 
-local BlueQueuePlacement = {}
-local RedQueuePlacement = {}
-local RedTeam = {
-    RedQueuePlacement = {},
-    StairPlacementZone = nil,
-}
+-- Renamed and fixed type
+local RoundThread: thread
+local IntermissionConnection = Scrypt.CreateSignal("IntermissionEnded")
 
-local RoundConnection : RBXScriptConnection
 -- 1. Intermission Function
 function RoundService.Intermission(Duration: number)
-    print("Intermission started. Waiting for " .. tostring(Duration) .. " seconds...")
-    for i = Duration, 1, -1 do
-        print(tostring(i) .. " seconds remaining...")
-        task.wait(1)
-    end
+    assert(Duration, "Duration not provided.") -- Added assert to check if Duration is provided
+
+    -- EDIT: Now uses string interpolation to print the duration
+    print(`Intermission started. Waiting for {tostring(Duration)} seconds...`)
+
+    -- EDIT: Moved loop into a task.defer to avoid blocking the main thread
+    task.defer(function()
+        for i = Duration, 1, -1 do
+            print(tostring(i) .. " seconds remaining...")
+            task.wait(1)
+        end
+    end)
+
+    IntermissionConnection:Fire()
     print("Intermission ended.")
-end
-
-
-function RoundService.HandleBlock(Player : Player)
-    -- print("Handling block")
-    local BlockTool = Instance.new("Tool")
-    local Character = Player.Character
-    assert(Character, "Character not found.")
-    if Character:FindFirstChild("BlockTool") then
-        return
-        -- Character.BlockTool:Destroy()
-    end
-    BlockTool.Name = "BlockTool"
-    BlockTool.Parent = Player.Character
-    BlockTool.RequiresHandle = false;
-    local Upgrade = PlayerService.GetBlockUpgrade(Player)
-    BlockTool:SetAttribute("BlockUpgrade", Upgrade)
-    local meshPart = Instance.new("Part")
-    meshPart.Parent = BlockTool
-
-
-    -- Put it 2 studs in front of the player 
-    meshPart.CFrame = Character.PrimaryPart.CFrame * CFrame.new(0, 0, -2)
-    meshPart.CanCollide = false
-    meshPart.Size = Vector3.new(1.5, 1.5, 1.5)
-    local wc  = Instance.new("WeldConstraint")
-    wc.Parent = meshPart
-    wc.Part0 = meshPart
-    wc.Part1 = Character.PrimaryPart
-
-end
-
-function RoundService.StartSpawning()
-   local CollectionPart : Part =  TeamService.GetBaseChild("Red", "CollectionPart"):: Part
-   -- Spawn in Blocks
-    local TeamZone = Zone.fromRegion(CollectionPart.CFrame, Vector3.new(15,15,15))
-    TeamZone.playerEntered:Connect(function(player)
-        RoundService.HandleBlock(player)
-        -- print(TeamZone)
-        print("Now giving player a block to do something here with")
-    end)
-
-    
---    print(CollectionPart)
-   while task.wait(1) do 
-        -- print("spawning in a brick ehre")
-        local part = Instance.new("Part", CollectionPart)
-        part.Size = Vector3.new(1, 1, 1)
-        part.Parent = workspace
-        part.Position = CollectionPart.Position + Vector3.new(0, 1, 0)
-        
-   end
-end
-
-local isProcessing = false -- Variable to track if the queue is already being processed
-
-function ProcessBlockPlacementQueue(QueueToProcess: string)
-    -- Determine which queue to process
-    local Queue = (QueueToProcess == "Blue") and BlueQueuePlacement or RedQueuePlacement
-    -- If the queue is already being processed, return early
-    if isProcessing then
-        return
-    end
-
-    isProcessing = true -- Mark the queue as being processed
-
-    task.spawn(function()
-        while #Queue > 0 do
-            print("Processing the respective queue here")
-            -- Take the first request from the queue
-            table.remove(Queue, 1)
-            -- print(Queue
-            local StairCase = workspace.StaircaseModel
-            local children = StairCase:GetChildren()
-            table.sort(children, function(a, b)
-                local numA = tonumber(a.Name) or 0 -- Convert to number, default to 0 if not a valid number
-                local numB = tonumber(b.Name) or 0
-                return numA < numB
-            end)
-            
-            for i, child in pairs(children) do
-                if child:IsA("Part") and child.CanCollide == false then 
-                    child.Transparency = 0
-                    child.CanCollide = true
-                    print(child.Name)
-                    print("found the child")
-                    break
-                end
-            end
-            -- print("Processed the respective queue here")
-            task.wait(.2) -- Wait 1 second to simulate processing
-        end
-
-        isProcessing = false -- Mark the queue as not being processed
-        print("Queue processing complete.")
-    end)
-end
-
-function RoundService.HandleStaircase()
-    -- local Zone = Zone.fromRegion(workspace:FindFirstChild("StaircaseModel"), Vector3.new(15, 15, 15))
-    local StaircaseModel = workspace:FindFirstChild("StaircaseModel") :: Model
-    local ZoneCreator = Zone.fromRegion(StaircaseModel["1"].CFrame, Vector3.new(15,15,15))
-    print("staircase created")
-    ZoneCreator.playerEntered:Connect(function(Player : Player)
-        
-        local Team = Player.Team   
-        
-        print("Player entered the zone, now placing something here")
-        local BlockTool = Player.Character:FindFirstChild("BlockTool")
-        if BlockTool then
-            local Blocks = BlockTool:GetAttribute("BlockUpgrade") or 1
-                print("upgrading the parts here")
-                -- BlockTool:SetAttribute("BlockUpgrade", Upgrade)
-                local Data = {
-                    Blocks = Blocks,
-                    Player = Player,
-                }
-                table.insert(RedQueuePlacement,"RedQueuePlacement")
-                ProcessBlockPlacementQueue("Red")
-                -- local part = Instance.new("Part", StaircaseModel)
-                -- part.Size = Vector3.new(1, 1, 1)
-                -- part.Position = StaircaseModel.Position + Vector3.new(0, 1, 0)
-            BlockTool:Destroy()
-        end
-    end)
-    
-
 end
 
 function RoundService.StartRound()
 	print("Round started.")
-    task.spawn(function()
-        RoundService.StartSpawning()
-    end)
-    RoundService.HandleStaircase()
-    print("handling staircase")
-    task.wait(Rules.RoundTime)
-	RoundConnection = task.spawn(function()
+
+    task.wait(RULES.RoundTime)
+
+    -- EDIT: changed from task.defer to task.spawn. Also changed variable name to RoundThread since spawn and defer return threads not connections
+	RoundThread = task.defer(function()
 		print("Round ended.")
 	end)
 end
+
 -- 3. Teleport to Spawn Points Function
-function RoundService.TeleportPlayers()
-    local TeamFolder = workspace:FindFirstChild("Bases"):: Folder
-    assert(TeamFolder, "Teams folder not found in workspace.")
+function RoundService.TeleportPlayers(TeamsLocation: Instance)
+    -- EDIT: Made the teams folder user-provided to avoid hardcoding the teams folder location
+    assert(TeamsLocation, "Teams folder not provided.")
 
-    local RedSpawn: SpawnLocation = TeamFolder["Red"]:FindFirstChildWhichIsA("SpawnLocation"):: SpawnLocation
-    local BlueSpawn: SpawnLocation = TeamFolder["Blue"]:FindFirstChildWhichIsA("SpawnLocation"):: SpawnLocation
+    -- EDIT: Removed Players and Offset variables since they can be used directly in the loop
 
-    assert(RedSpawn, "Red spawn point not found.")
-    assert(BlueSpawn, "Blue spawn point not found.")
-    local Offset = Vector3.new(0, 3, 0)
-    local players = Players:GetPlayers()
-    for _, player in ipairs(players) do
-        if player.Team.Name == "Red" then
-            player.Character:PivotTo(RedSpawn.CFrame * CFrame.new(Offset))
-        elseif player.Team.Name == "Blue" then
-            player.Character:PivotTo(BlueSpawn.CFrame * CFrame.new(Offset))
+    -- EDIT: Made this loop more general. Instead of using hardcoded team names, it now uses the team folder provided by the user and trys to teleport players based on their assigned team
+    for _, player in ipairs(Players:GetPlayers()) do
+        local playerTeam = player.Team
+        if not playerTeam then
+            warn("Player " .. player.Name .. " does not have a team assigned.")
+            continue
         end
+
+        local teamLocation = TeamsLocation:FindFirstChild(playerTeam.Name):: Instance
+        local teamSpawn = teamLocation:FindFirstChildWhichIsA("SpawnLocation"):: SpawnLocation
+        local character = player.Character
+
+        if not teamSpawn then
+            warn("Spawn location not found for team: " .. playerTeam.Name)
+            continue
+        end
+
+        if not character then
+            warn("Could not find character for player: " .. player.Name)
+            continue
+        end
+        
+        character:PivotTo(teamSpawn.CFrame*CFrame.new(0, 3, 0))
     end
 end
 
-
-
+-- MAYBE: Will move this to the game manager and instead of using a loop, use the Event driven paradigm to handle the game state 
 function RoundService:Init()
     while true do 
-        if #Players:GetPlayers() >= Rules.PlayersNeeded then
-            RoundService.Intermission(Rules.IntermissionTime)
+        if #Players:GetPlayers() >= RULES.PlayersNeeded then
+            RoundService.Intermission(RULES.IntermissionTime)
             TeamService.FillTeamsEvenly(TeamService.CreateTeams(game:GetService("Teams"), {
                 Name = "Red",
                 TeamColor = BrickColor.Red(),
@@ -216,24 +103,19 @@ function RoundService:Init()
                 Name = "Blue",
                 TeamColor = BrickColor.Blue(),
             }))
-            RoundService.TeleportPlayers()
+
+            RoundService.TeleportPlayers(workspace:FindFirstChild("Bases"):: Instance)
             RoundService.StartRound()
-            
-        else
-            -- warn("not enough players")
-            task.wait(2)
-            Scrypt.ServerNetwork.SendPacketToAllClients("PlayersNeeded", {
-                Reliable = true,
-                Data = "Not enough players to start the game."
-            })
+            continue -- EDIT: Removed else in favor of continue        
         end
 
+        -- EDIT: This used to be in an else statement, but I moved it out of the else statement to keep indentations minimal
+        -- warn("not enough players")
+        task.wait(2)
+        
+        -- EDIT: Fixed function usage (although I should change the usage to fit what you had before since it's more consistent) 
+        Scrypt.ServerNetwork.SendPacketToAllClients("PlayersNeeded", "Not enough players to start the game.", true)
     end
-
-    
-
 end
-
-
 
 return RoundService

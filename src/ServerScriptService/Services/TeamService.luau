@@ -24,11 +24,9 @@ local function AssignTeam(Player: Player, Team: Team)
     Player.Team = Team
 end
 
-
-
 function TeamService.SwitchTeams(Player: Player, Team: Team)
     -- TODO Make sure to check if the progress of the stairs is not over 90 percent
-    Player.Team = Team
+    AssignTeam(Player, Team)
 end
 
 -- General function to create teams
@@ -44,20 +42,18 @@ function TeamService.CreateTeams(TeamsLocation: Instance, ...: TeamParams): ...T
     return unpack(Teams):: Team
 end
 
-
-function TeamService.GetBaseChild(TeamName : string, ChildName : string) : Folder
+function TeamService.GetBaseChild(TeamName: string, ChildName: string?): Folder
     local MainFolder = workspace:FindFirstChild("Bases"):: Folder
-    local TeamFolder = MainFolder:FindFirstChild(TeamName)
+    local TeamFolder = MainFolder:FindFirstChild(TeamName):: Folder
     assert(TeamFolder, "Team folder not found in workspace.")
+
     if ChildName == nil then
         return TeamFolder
-    else
-		local Child = TeamFolder:FindFirstChild(ChildName)
-        assert(Child, "Child not found in team folder.")
-        return Child
-        -- warn("Child not found in team folder.")
     end
-    return TeamFolder
+
+    local Child = TeamFolder:FindFirstChild(ChildName)
+    assert(Child, "Child not found in team folder.")
+    return Child:: Folder
 end
 
 function TeamService.FillTeamsEvenly(...: Team)
@@ -65,6 +61,7 @@ function TeamService.FillTeamsEvenly(...: Team)
     local RandomSet = Random.new(Seed)
     local Teams = {...}
     local PlayingPlayers = Scrypt.Services.Players:GetPlayers()
+    
     for _, player in ipairs(PlayingPlayers) do
         local RandomTeam = Teams[RandomSet:NextInteger(1, #Teams)]
         AssignTeam(player, RandomTeam)
