@@ -3,7 +3,7 @@ local Scrypt = require(game:GetService("ReplicatedStorage").Scrypt)
 Scrypt.Init():Wait()
 
 -- Services
-local RoundController = Scrypt.GetService("RoundService")
+local RoundService = Scrypt.GetService("RoundService")
 local Utilities = Scrypt.GetModule("Utilities")
 
 -- Function to send a packet to the client
@@ -22,7 +22,7 @@ end
 
 -- Handles all functions for when the character gets added
 local function CharacterAdded(Character: Model, Player: Player)
-	print("Character added")
+	-- print("Character added")
 end
 
 local function OnPlayerAdded(Player: Player)
@@ -47,9 +47,6 @@ local function OnPlayerAdded(Player: Player)
         Reliable = true,
         Data = "NewPacket"
     })
-    task.delay(2, function()
-        sendPacketToClient(Player, "Welcome to the game!")
-    end)
 end
 
 -- Handle Player leaving
@@ -65,13 +62,13 @@ local function OnPlayerRemoving(Player: Player)
 end
 
 -- Example usage: Send a welcome message to players when they join
-Utilities.SafePlayerAdded:Connect(OnPlayerAdded)
+Utilities.SafePlayerAdded(OnPlayerAdded)
 Scrypt.Services.Players.PlayerRemoving:Connect(OnPlayerRemoving)
 
 -- Initializers
 task.spawn(function()
     repeat task.wait() until #Scrypt.Services.Players:GetPlayers() > 0
-    RoundController:Init()
+    -- RoundController:Init()
 end)
 
 -- Secondary setup

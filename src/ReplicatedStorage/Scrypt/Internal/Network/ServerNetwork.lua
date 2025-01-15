@@ -223,7 +223,6 @@ end
 
 -- Creates a remote from a request from the client and returns it
 local function CreateClientRemote(Params: RemoteParams): string
-    print(true)
     local ValidationResult = ValidateRemoteParams(Params)
     if not ValidationResult.Success then
         return error(ValidationResult.Error)
