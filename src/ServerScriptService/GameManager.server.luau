@@ -16,6 +16,13 @@ end
 
 local function OnPlayerAdded(Player: Player)
     -- Handle character addeds
+
+    while task.wait(1) do 
+
+
+    end
+    
+
 	CharacterAdded(Player.Character or Player.CharacterAdded:Wait(), Player)
 	Player.CharacterAdded:Connect(function(Character)
 		CharacterAdded(Character, Player)
