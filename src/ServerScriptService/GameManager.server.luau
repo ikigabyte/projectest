@@ -2,9 +2,10 @@
 local Scrypt = require(game:GetService("ReplicatedStorage").Scrypt)
 Scrypt.Init():Wait()
 
-
--- local DataStoreService = Scrypt.Services.DataStoreService
+-- Services
 local RoundController = Scrypt.GetService("RoundService")
+local Utilities = Scrypt.GetModule("Utilities")
+
 -- Function to send a packet to the client
 local function sendPacketToClient(player: Player, message: string)
     local packetData = {
@@ -19,20 +20,71 @@ local function sendPacketToClient(player: Player, message: string)
     print("sent the packet here")
 end
 
--- Example usage: Send a welcome message to players when they join
-Scrypt.Services.Players.PlayerAdded:Connect(function(player: Player)
+-- Handles all functions for when the character gets added
+local function CharacterAdded(Character: Model, Player: Player)
+	print("Character added")
+end
+
+local function OnPlayerAdded(Player: Player)
+    -- Handle character addeds
+	CharacterAdded(Player.Character or Player.CharacterAdded:Wait(), Player)
+	Player.CharacterAdded:Connect(function(Character)
+		CharacterAdded(Character, Player)
+	end)
+	
+    -- Handle memory leak
+    Player.CharacterRemoving:Connect(function(Character: Model)
+        repeat
+            local Success = pcall(function()
+                task.defer(Character.Destroy, Character)
+            end)
+        until Success
+    end)
+
+    -- Send a welcome message to the player
     Scrypt.ServerNetwork.SendPacketToClient("WelcomeMessage", {
-        Address = player,
+        Address = Player,
         Reliable = true,
         Data = "NewPacket"
     })
     task.delay(2, function()
-        sendPacketToClient(player, "Welcome to the game!")
+        sendPacketToClient(Player, "Welcome to the game!")
     end)
-    
+end
+
+-- Handle Player leaving
+local function OnPlayerRemoving(Player: Player)
+	-- Erase player from server
+	
+	-- Handle memory leak
+	repeat
+		local Success = pcall(function()
+			task.defer(Player.Destroy, Player)
+		end)
+	until Success
+end
+
+-- Example usage: Send a welcome message to players when they join
+Utilities.SafePlayerAdded:Connect(OnPlayerAdded)
+Scrypt.Services.Players.PlayerRemoving:Connect(OnPlayerRemoving)
+
+-- Initializers
+task.spawn(function()
+    repeat task.wait() until #Scrypt.Services.Players:GetPlayers() > 0
+    RoundController:Init()
 end)
 
-repeat task.wait() until #Scrypt.Services.Players:GetPlayers() > 0
+-- Secondary setup
+-- task.defer(function()
+	
+-- end)
 
-RoundController:Init()
+-- Next Heartbeat setup
+-- task.delay(0, function()
+	
+-- end)
 
+-- Loops
+--while true do
+--	task.wait(1)
+--end
