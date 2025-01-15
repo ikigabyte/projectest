@@ -223,6 +223,7 @@ end
 
 -- Creates a remote from a request from the client and returns it
 local function CreateClientRemote(Params: RemoteParams): string
+    print(true)
     local ValidationResult = ValidateRemoteParams(Params)
     if not ValidationResult.Success then
         return error(ValidationResult.Error)
@@ -234,10 +235,16 @@ local function CreateClientRemote(Params: RemoteParams): string
     end
     
     local Config = ConfigResult.Value:: RemoteCreateResult
+    local RootFolderResult = VerifyNetworkIntegrity():: Result<Folder>
+    assert(RootFolderResult.Success, RootFolderResult.Error)
 
+    local RootFolder = RootFolderResult.Value:: Folder
+    assert(RootFolder, "Error finding root folder")
+    
     -- Create instance (this is the only impure operation)
     local NewRemote = Instance.new(Config.RemoteType)
     NewRemote.Name = Config.Name
+    NewRemote.Parent = RootFolder:FindFirstChild(Config.Parent)
 
     return NewRemote.Name
 end
