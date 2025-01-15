@@ -17,16 +17,28 @@ type RulesType = {
     PlayersNeeded: number,
 }
 
-local RULES : RulesType = {
+local RULES: RulesType = {
     IntermissionTime = 2,
     SpawnTime = 5,
-    RoundTime = 300,
+    RoundTime = 10,
     PlayersNeeded = 1,
+}
+
+type InitResult = {
+    IntermissionStarted: Scrypt.Signal,
+    IntermissionEnded: Scrypt.Signal,
+    RoundStarted: Scrypt.Signal,
+    RoundEnded: Scrypt.Signal,
 }
 
 -- Renamed and fixed type
 local RoundThread: thread
-local IntermissionConnection = Scrypt.CreateSignal("IntermissionEnded")
+local IntermissionStartedEvent = Scrypt.CreateSignal("IntermissionStarted") -- NEW
+local IntermissionEndedEvent = Scrypt.CreateSignal("IntermissionEnded") -- NEW
+
+-- EDIT: Addeed round events
+local RoundStartedEvent = Scrypt.CreateSignal("RoundStarted") -- NEW
+local RoundEndedEvent = Scrypt.CreateSignal("RoundEndedConnection") -- NEW
 
 -- 1. Intermission Function
 function RoundService.Intermission(Duration: number)
@@ -35,16 +47,13 @@ function RoundService.Intermission(Duration: number)
     -- EDIT: Now uses string interpolation to print the duration
     print(`Intermission started. Waiting for {tostring(Duration)} seconds...`)
 
-    -- EDIT: Moved loop into a task.defer to avoid blocking the main thread
-    task.defer(function()
-        for i = Duration, 1, -1 do
-            print(tostring(i) .. " seconds remaining...")
-            task.wait(1)
-        end
-    end)
+    IntermissionStartedEvent:Fire()
 
-    IntermissionConnection:Fire()
-    print("Intermission ended.")
+    for i = Duration, 1, -1 do
+        task.wait(1)
+    end
+
+    IntermissionEndedEvent:Fire()
 end
 
 function RoundService.StartRound()
@@ -64,7 +73,6 @@ function RoundService.TeleportPlayers(TeamsLocation: Instance)
     assert(TeamsLocation, "Teams folder not provided.")
 
     -- EDIT: Removed Players and Offset variables since they can be used directly in the loop
-
     -- EDIT: Made this loop more general. Instead of using hardcoded team names, it now uses the team folder provided by the user and trys to teleport players based on their assigned team
     for _, player in ipairs(Players:GetPlayers()) do
         local playerTeam = player.Team
@@ -91,18 +99,11 @@ function RoundService.TeleportPlayers(TeamsLocation: Instance)
     end
 end
 
--- MAYBE: Will move this to the game manager and instead of using a loop, use the Event driven paradigm to handle the game state 
-function RoundService:Init()
+local function LoopRounds()
     while true do 
         if #Players:GetPlayers() >= RULES.PlayersNeeded then
             RoundService.Intermission(RULES.IntermissionTime)
-            TeamService.FillTeamsEvenly(TeamService.CreateTeams(game:GetService("Teams"), {
-                Name = "Red",
-                TeamColor = BrickColor.Red(),
-            }, {
-                Name = "Blue",
-                TeamColor = BrickColor.Blue(),
-            }))
+            TeamService.FillTeamsEvenly(unpack(game:GetService("Teams"):GetChildren()))
 
             RoundService.TeleportPlayers(workspace:FindFirstChild("Bases"):: Instance)
             RoundService.StartRound()
@@ -110,12 +111,24 @@ function RoundService:Init()
         end
 
         -- EDIT: This used to be in an else statement, but I moved it out of the else statement to keep indentations minimal
-        -- warn("not enough players")
         task.wait(2)
         
         -- EDIT: Fixed function usage (although I should change the usage to fit what you had before since it's more consistent) 
         Scrypt.ServerNetwork.SendPacketToAllClients("PlayersNeeded", "Not enough players to start the game.", true)
     end
+end
+
+-- MAYBE: Will move this to the game manager and instead of using a loop, use the Event driven paradigm to handle the game state 
+function RoundService.Init(): InitResult
+    local InitResult = {
+        IntermissionStarted = IntermissionStartedEvent,
+        IntermissionEnded = IntermissionEndedEvent,
+        RoundStarted = RoundStartedEvent,
+        RoundEnded = RoundEndedEvent,
+    }
+
+    task.defer(LoopRounds)
+    return InitResult
 end
 
 return RoundService

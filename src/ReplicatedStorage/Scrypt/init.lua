@@ -65,13 +65,39 @@ export type Controller = {
 export type SharedModule = {[string]: any}
 
 export type Signal = typeof(setmetatable({}:: {
-	Connections: {Signal.SignalConnection?},
+	Connections: {SignalConnection?},
 	YieldedConnections: {thread?}
-}, {}:: Signal.SignalImpl))
+}, {}:: SignalImpl))
+
+type SignalImpl = {
+	__index: SignalImpl,
+	New: () -> Signal,
+	Connect: (self: Signal, Function: CallbackFunction) -> SignalConnection?,
+	Once: (self: Signal, Function: CallbackFunction) -> SignalConnection?,
+	Wait: (self: Signal) -> (),
+	Disconnect: (self: Signal) -> (),
+	DisconnectAll: (self: Signal) -> (),
+	Fire: (self: Signal, ...any) -> (),
+}
+
+export type CallbackFunction = (...any) -> ...any
+export type SignalConnection = typeof(setmetatable({}:: {
+	Function: CallbackFunction,
+	IsOnce: boolean,
+	Self: Signal,
+}, {}))
 
 export type Function = typeof(setmetatable({}:: {
 	Function: ((...any) -> ...any)?,
 	YieldedCalls: {thread?}
-}, {}:: Function.FunctionImpl))
+}, {}:: FunctionImpl))
+
+type FunctionImpl = {
+	__index: FunctionImpl,
+	New: () -> Function,
+	OnInvoke: (self: Function, ReturnFunction: (...any) -> ...any) -> (),
+	Invoke: (self: Function, ...any) -> ...any,
+	Destroy: (self: Function) -> ()
+}
 
 return Scrypt()

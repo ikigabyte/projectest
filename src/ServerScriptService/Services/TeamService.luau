@@ -15,7 +15,6 @@ local function CreateTeam(Name: string, TeamColor: BrickColor, Teams: Instance):
     local Team = Teams:FindFirstChild(Name):: Team or Instance.new("Team", Teams)
     Team.Name = Name
     Team.TeamColor = TeamColor
-    print("Craeted the te")
 
     return Team
 end
@@ -27,6 +26,35 @@ end
 function TeamService.SwitchTeams(Player: Player, Team: Team)
     -- TODO Make sure to check if the progress of the stairs is not over 90 percent
     AssignTeam(Player, Team)
+end
+
+-- Get the team with the lowest amount of players
+local function GetLowestTeam(...: Team): Team?
+    local LowestTeam
+    local LowestCount = math.huge
+
+    for _, team in ipairs({...}) do
+        local PlayerCount = #team:GetPlayers()
+        if PlayerCount < LowestCount then
+            LowestCount = PlayerCount
+            LowestTeam = team
+        elseif PlayerCount == LowestCount then
+            local Seed = os.clock()*10000
+            local RandomSet = Random.new(Seed)
+            local Num = RandomSet:NextInteger(1, 2)
+            if Num == 1 then
+                LowestCount = PlayerCount
+                LowestTeam = team
+            end
+        end
+    end
+
+    if not LowestTeam then
+        warn("No team found.")
+        return nil
+    end
+
+    return LowestTeam
 end
 
 -- General function to create teams
@@ -57,12 +85,25 @@ function TeamService.GetBaseChild(TeamName: string, ChildName: string?): Folder
 end
 
 function TeamService.FillTeamsEvenly(...: Team)
-    local Seed = os.time()
+    local Seed = os.clock()*10000
     local RandomSet = Random.new(Seed)
     local Teams = {...}
     local PlayingPlayers = Scrypt.Services.Players:GetPlayers()
+
+    -- Shuffle playing players array
+    for i = #PlayingPlayers, 2, -1 do
+        local j = RandomSet:NextInteger(1, i)
+        PlayingPlayers[i], PlayingPlayers[j] = PlayingPlayers[j], PlayingPlayers[i]
+    end
     
     for _, player in ipairs(PlayingPlayers) do
+        local TeamToAssign = GetLowestTeam(...)
+        print(TeamToAssign)
+        if TeamToAssign then
+            AssignTeam(player, TeamToAssign)
+            continue
+        end
+
         local RandomTeam = Teams[RandomSet:NextInteger(1, #Teams)]
         AssignTeam(player, RandomTeam)
     end

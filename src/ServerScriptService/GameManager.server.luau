@@ -1,24 +1,13 @@
---!strict
+
 local Scrypt = require(game:GetService("ReplicatedStorage").Scrypt)
 Scrypt.Init():Wait()
 
 -- Services
 local RoundService = Scrypt.GetService("RoundService")
+local Teams = game:GetService("Teams")
 local Utilities = Scrypt.GetModule("Utilities")
-
--- Function to send a packet to the client
-local function sendPacketToClient(player: Player, message: string)
-    local packetData = {
-        Address = player,
-        Reliable = true, -- Ensure the packet is delivered reliably
-        Data = message,
-    }:: Scrypt.ServerPacketData
-
-    -- Use SendPacket to send the packet to the specific player
-
-    Scrypt.ServerNetwork.SendPacketToClient("WelcomeMessage", packetData)
-    print("sent the packet here")
-end
+local TeamService = Scrypt.GetService("TeamService")
+local RoundEvents
 
 -- Handles all functions for when the character gets added
 local function CharacterAdded(Character: Model, Player: Player)
@@ -40,13 +29,6 @@ local function OnPlayerAdded(Player: Player)
             end)
         until Success
     end)
-
-    -- Send a welcome message to the player
-    Scrypt.ServerNetwork.SendPacketToClient("WelcomeMessage", {
-        Address = Player,
-        Reliable = true,
-        Data = "NewPacket"
-    })
 end
 
 -- Handle Player leaving
@@ -67,8 +49,21 @@ Scrypt.Services.Players.PlayerRemoving:Connect(OnPlayerRemoving)
 
 -- Initializers
 task.spawn(function()
+    local Red, Blue, Intermission = TeamService.CreateTeams(Teams, {
+        Name = "Red",
+        TeamColor = BrickColor.Red(),
+    }, {
+        Name = "Blue",
+        TeamColor = BrickColor.Blue(),
+    })
     repeat task.wait() until #Scrypt.Services.Players:GetPlayers() > 0
-    -- RoundController:Init()
+    RoundEvents = RoundService.Init()
+
+    RoundEvents.IntermissionStarted:Connect(function()
+        for i, v in ipairs(Scrypt.Services.Players:GetPlayers()) do
+            v.Team = nil
+        end
+    end)
 end)
 
 -- Secondary setup
