@@ -290,7 +290,7 @@ local function LoadDirectAccess()
 	ScryptClient.Services = RBXServices
 	ScryptClient.LocalPlayer = WaitForLocalPlayer(RBXServices.Players)
 	ScryptClient.GUI = {}:: {[string]: {[string]: GuiObject}}
-	ScryptClient.GUI = nil:: any	
+	ScryptClient.GUI = require(script.Parent.Internal.GUI)
 end
 
 local function SetupFeatures(EnvironmentLocation: Instance?)
@@ -372,6 +372,8 @@ type Controller = {
 	["Name"]: string,
 	["Controller"]: any
 }
+
+type GUI = {[string]: {[string]: GuiObject}}
 
 type Signal = typeof(setmetatable({}:: {
 	Connections: {Signal.SignalConnection?},

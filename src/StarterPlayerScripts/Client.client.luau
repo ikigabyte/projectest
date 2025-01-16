@@ -15,7 +15,8 @@ end)
 local BlockController= Scrypt.GetController("BlockController")
 BlockController.HandleBlocks();
 
-
+local Gui = Scrypt.GUI
+print(Gui)
 
 
 Scrypt.ClientNetwork.ListenForPacket("CurrencyUpdate", true, function(packetData)
