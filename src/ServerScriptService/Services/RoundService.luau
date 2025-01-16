@@ -9,6 +9,7 @@ local RoundService = {}
 local Players = Scrypt.Services.Players
 local TeamService = Scrypt.GetService("TeamService")
 local PlayerService = Scrypt.GetService("PlayerService")
+local StairService = Scrypt.GetService("StairService")
 
 type RulesType = {
     IntermissionTime: number,
@@ -18,9 +19,9 @@ type RulesType = {
 }
 
 local RULES: RulesType = {
-    IntermissionTime = 2,
+    IntermissionTime = 1,
     SpawnTime = 5,
-    RoundTime = 10,
+    RoundTime = 200,
     PlayersNeeded = 1,
 }
 
@@ -43,12 +44,9 @@ local RoundEndedEvent = Scrypt.CreateSignal("RoundEndedConnection") -- NEW
 -- 1. Intermission Function
 function RoundService.Intermission(Duration: number)
     assert(Duration, "Duration not provided.") -- Added assert to check if Duration is provided
-
     -- EDIT: Now uses string interpolation to print the duration
     print(`Intermission started. Waiting for {tostring(Duration)} seconds...`)
-
     IntermissionStartedEvent:Fire()
-
     for i = Duration, 1, -1 do
         task.wait(1)
     end
@@ -57,15 +55,15 @@ function RoundService.Intermission(Duration: number)
 end
 
 function RoundService.StartRound()
-	print("Round started.")
-
+	-- print("Round started.")
+    StairService.StartSpawning()
     task.wait(RULES.RoundTime)
-
     -- EDIT: changed from task.defer to task.spawn. Also changed variable name to RoundThread since spawn and defer return threads not connections
 	RoundThread = task.defer(function()
 		print("Round ended.")
 	end)
 end
+
 
 -- 3. Teleport to Spawn Points Function
 function RoundService.TeleportPlayers(TeamsLocation: Instance)

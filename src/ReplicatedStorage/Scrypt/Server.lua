@@ -285,6 +285,7 @@ end
 
 function ScryptServer.GetController(Name: string): any
 	return error("CANNOT BE RUN ON SERVER")
+	
 end
 
 --[=[

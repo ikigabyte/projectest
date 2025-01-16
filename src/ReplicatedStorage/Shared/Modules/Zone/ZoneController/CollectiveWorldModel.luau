@@ -23,7 +23,7 @@ function CollectiveWorldModel:_getCombinedResults(methodName, ...)
 	local results = workspace[methodName](workspace, ...)
 	if worldModel then
 		local additionalResults = worldModel[methodName](worldModel, ...)
-		for _, result in pairs(additionalResults) a
+		for _, result in pairs(additionalResults) do
 			table.insert(results, result)
 		end
 	end

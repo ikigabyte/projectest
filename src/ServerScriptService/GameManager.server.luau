@@ -17,12 +17,13 @@ end
 local function OnPlayerAdded(Player: Player)
     -- Handle character addeds
 
-    while task.wait(1) do 
 
 
-    end
+    -- while task.wait(1) do 
+
+
+    -- end
     
-
 	CharacterAdded(Player.Character or Player.CharacterAdded:Wait(), Player)
 	Player.CharacterAdded:Connect(function(Character)
 		CharacterAdded(Character, Player)
@@ -37,6 +38,7 @@ local function OnPlayerAdded(Player: Player)
         until Success
     end)
 end
+
 
 -- Handle Player leaving
 local function OnPlayerRemoving(Player: Player)
@@ -54,6 +56,12 @@ end
 Utilities.SafePlayerAdded(OnPlayerAdded)
 Scrypt.Services.Players.PlayerRemoving:Connect(OnPlayerRemoving)
 
+
+
+
+
+
+
 -- Initializers
 task.spawn(function()
     local Red, Blue, Intermission = TeamService.CreateTeams(Teams, {
@@ -65,7 +73,6 @@ task.spawn(function()
     })
     repeat task.wait() until #Scrypt.Services.Players:GetPlayers() > 0
     RoundEvents = RoundService.Init()
-
     RoundEvents.IntermissionStarted:Connect(function()
         for i, v in ipairs(Scrypt.Services.Players:GetPlayers()) do
             v.Team = nil

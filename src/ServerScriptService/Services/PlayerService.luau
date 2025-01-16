@@ -6,13 +6,8 @@ Scrypt.Init()
 
 local PlayerService = {}
 
-
-
 function PlayerService.GetBlockUpgrade(Player: Player)
-
     return 1
-
-
 end
 
 

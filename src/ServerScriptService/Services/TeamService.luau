@@ -1,6 +1,7 @@
 --!strict
 
 local Scrypt = require(game:GetService("ReplicatedStorage").Scrypt)
+local Teams = game:GetService("Teams")
 Scrypt.Init()
 
 local TeamService = {}
@@ -54,7 +55,8 @@ local function GetLowestTeam(...: Team): Team?
         return nil
     end
 
-    return LowestTeam
+    return Teams.Red
+    -- return LowestTeam
 end
 
 -- General function to create teams
@@ -98,7 +100,6 @@ function TeamService.FillTeamsEvenly(...: Team)
     
     for _, player in ipairs(PlayingPlayers) do
         local TeamToAssign = GetLowestTeam(...)
-        print(TeamToAssign)
         if TeamToAssign then
             AssignTeam(player, TeamToAssign)
             continue
