@@ -174,7 +174,7 @@ function StairService.StartSpawning() -- ! It has to get both teams and start sp
         
         -- Process queue with correct team name
         ProcessBlockPlacementQueue(Team == "Red" and "Red" or "Blue", StaircaseModel)
-        
+        CollectionPart:SetAttribute("BlockCount", 0)
         BlockTool:Destroy()
     end)
 
