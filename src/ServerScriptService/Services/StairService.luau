@@ -164,8 +164,9 @@ function StairService.StartSpawning() -- ! It has to get both teams and start sp
     
         -- Get correct queue based on team
         local Queue = Team == "Red" and RedQueuePlacement or BlueQueuePlacement
+        local BlockAmount = CollectionPart:GetAttribute("BlockCount")
         local PlacementData = {
-            Blocks = CollectionPart:GetAttribute("BlockCount"),
+            Blocks = BlockAmount,
             Player = Player,
         }
     
