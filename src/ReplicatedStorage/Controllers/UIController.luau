@@ -6,7 +6,7 @@ Scrypt.Init()
 
 local TweenService : TweenService = Scrypt.Services.TweenService
 local UIController = {}
-
+local AudioController = Scrypt.GetController("AudioController")
 local PlayerSettings = {
     SFX = true,
 	MUSIC = true,
@@ -19,8 +19,53 @@ local rewardAsset = "rbxassetid://129074893657038"
 local status = false
 local function OnButtonClick(icon)
     status = not status
-    print(status)
+    -- print(status)
     icon:setImage(status and muteMusic or music)
+end
+
+
+local function StartPlayingMusic(music)
+    
+    
+end
+
+
+local function AnimateTopBarLabelText(icon, fullText: string)
+    local textLength = #fullText
+    local scrollSpeed = 0.15 -- Time interval for each update
+    local visibleLength = 15 -- Number of visible characters at once
+    local timeBeforeHide = 3
+    local isActive = true
+    -- Function to loop the text
+    
+    local function loopText()
+        while isActive do
+            for i = 0, textLength do
+                local displayedText = fullText:sub(i + 1, i + visibleLength) -- Create the visible slice
+                if #displayedText < visibleLength then
+                    -- Append characters from the start to loop seamlessly
+                    displayedText = displayedText .. fullText:sub(1, visibleLength - #displayedText)
+                end
+                icon:setLabel(displayedText)
+                task.wait(scrollSpeed)
+                if not isActive then icon:setLabel('') break end
+            end
+        end
+    end
+    task.delay(timeBeforeHide, function()
+        isActive = false -- Cancel the loop
+        icon:setLabel('') -- Clear the label
+    end)
+    loopText()
+end
+
+local function HandleMainSong(muteMusicIcon)
+    AudioController.PlaySound('MainSong', .5, 0, .5) 
+    AudioController.LoopSound('MainSong', .5) 
+    local Text = 'Now Playing: ' .. 'Nitro Fun Easter Egg'
+    task.spawn(function()
+        AnimateTopBarLabelText(muteMusicIcon, Text)
+    end)
 end
 
 UIController.SpawnRandomCoins = function(numberOfIcons, iconOfCurrency: ImageLabel, framePositionAndCapture: Frame, finalPosition: UDim2)
@@ -70,15 +115,6 @@ UIController.SetupTopBarFeatures = function()
     local TopbarPlus = require(Scrypt.Services.ReplicatedStorage:FindFirstChild("TopbarPlus"):FindFirstChild("Icon"))
 
     -- local icon = TopbarPlus.new:setImage(asset)
-    local muteMusicIcon
-    muteMusicIcon = TopbarPlus.new()
-    :setImage(music)
-    muteMusicIcon.deselected:Connect(function()
-        OnButtonClick(muteMusicIcon)
-    end)
-    muteMusicIcon.selected:Connect(function()
-        OnButtonClick(muteMusicIcon)
-    end)
 
     local muteSFXIcon
     muteSFXIcon = TopbarPlus.new()
@@ -94,7 +130,24 @@ UIController.SetupTopBarFeatures = function()
     rewardIcon = TopbarPlus.new()
     :setImage(rewardAsset)
     rewardIcon:setLabel("Rewards")
-    print("set up all the top bar features here")
+    -- print("set up all the top bar features here")
+
+    local muteMusicIcon
+    muteMusicIcon = TopbarPlus.new()
+    :setImage(music)
+    
+
+    task.delay(1, function()
+        HandleMainSong(muteMusicIcon)
+    end)
+    muteMusicIcon.deselected:Connect(function()
+        OnButtonClick(muteMusicIcon)
+    end)
+    muteMusicIcon.selected:Connect(function()
+        OnButtonClick(muteMusicIcon)
+    end)
+
+
 
 end
 
