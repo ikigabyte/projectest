@@ -3,7 +3,6 @@
 local Scrypt = require(game:GetService("ReplicatedStorage").Scrypt)
 Scrypt.Init()
 
-local TopbarPlus = require(Scrypt.Services.ReplicatedStorage:WaitForChild("TopbarPlus"):WaitForChild("Icon"))
 
 local TweenService : TweenService = Scrypt.Services.TweenService
 local UIController = {}
@@ -68,6 +67,8 @@ UIController.UpdateTimerLabel = function(number)
 end
 
 UIController.SetupTopBarFeatures = function()
+    local TopbarPlus = require(Scrypt.Services.ReplicatedStorage:FindFirstChild("TopbarPlus"):FindFirstChild("Icon"))
+
     -- local icon = TopbarPlus.new:setImage(asset)
     local muteMusicIcon
     muteMusicIcon = TopbarPlus.new()

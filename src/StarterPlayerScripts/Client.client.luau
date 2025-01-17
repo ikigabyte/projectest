@@ -9,9 +9,9 @@ local TweenModule = Scrypt.GetModule("TweenService2")
 
 local UIController = Scrypt.GetController("UIController")
 
--- Scrypt.ClientNetwork.ListenForPacket("WelcomeMessage", true, function(packetData)
--- 	print("Received welcome message: " .. tostring(packetData))
--- end)
+Scrypt.ClientNetwork.ListenForPacket("WelcomeMessage", true, function(packetData)
+	print("Received welcome message: " .. tostring(packetData))
+end)
 
 local BlockController= Scrypt.GetController("BlockController")
 BlockController.HandleBlocks();
