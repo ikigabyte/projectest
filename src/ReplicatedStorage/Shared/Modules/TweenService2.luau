@@ -54,18 +54,13 @@
 
 local TweenService = game:GetService("TweenService")
 local RunService = game:GetService("RunService")
-local TweenEvent = script:WaitForChild("TweenEvent", 5)
+local TweenEvent
 local HttpService = game:GetService("HttpService")
 
 local TweenModule = {}
 local latestFinish = {} -- this table operates on both the client and the server, server side it only stores GLOBAL tweens, local side it stores every local tween.
 
---| if there is no tween event, it will be created and parented to the script.
-if TweenEvent == nil and RunService:IsServer() then
-	TweenEvent = Instance.new("RemoteEvent")
-	TweenEvent.Name = "TweenEvent"
-	TweenEvent.Parent = script
-end
+
 
 --| Converting TweenInfo to an array is needed to pass it through the remote event:
 local function TweenInfo_To_Table(tInfo: TweenInfo)
@@ -245,91 +240,100 @@ function TweenModule:Create(instance: Instance, tInfo: TweenInfo, propertyTable:
 	return tweenMaster
 end
 
+function TweenModule.Init()
+	script:WaitForChild("TweenEvent", 5)
+	--| if there is no tween event, it will be created and parented to the script.
+	if TweenEvent == nil and RunService:IsServer() then
+		TweenEvent = Instance.new("RemoteEvent")
+		TweenEvent.Name = "TweenEvent"
+		TweenEvent.Parent = script
+	end
 
-if RunService:IsClient() then -- OnClientEvent only works clientside
-	local runningTweens = {}
+	if RunService:IsClient() then -- OnClientEvent only works clientside
+		local runningTweens = {}
 
-	local runningTweensById = {}
-	TweenEvent.OnClientEvent:Connect(function(purpose, instance, tInfo, propertyTable, tweenID, expectedProperties, expectedStartTime)
-        local tInfoTable = tInfo
-		if tInfo ~= nil then
-			tInfo = Table_To_TweenInfo(tInfo)
-		end
-
-		if expectedProperties then
-			serverAssignProperties(instance, expectedProperties)
-		end
-
-		local shortenBy = 0
-		if expectedStartTime and tInfo then
-			shortenBy = tick() - expectedStartTime
-
-			-- Recreate TweenInfo with the shortened time using tInfoTable
-			tInfo = TweenInfo.new(tInfoTable[1] - shortenBy, tInfoTable[2], tInfoTable[3], tInfoTable[4], tInfoTable[5], tInfoTable[6])
-            print ("Shortened by", shortenBy)
-		end
-
-		local function runTween(queued)
-			local finishTime = os.time() + tInfo.Time
-			latestFinish[instance] = latestFinish[instance] or os.time() -- cannot be nil.
-
-			local existingFinish = latestFinish[instance]
-			if queued and latestFinish[instance] >= os.time() then
-				local waitTime = (latestFinish[instance] - os.time())
-				latestFinish[instance] = finishTime + waitTime
-				existingFinish = latestFinish[instance]
-				task.wait(waitTime)
-			else
-				latestFinish[instance] = finishTime
+		local runningTweensById = {}
+		TweenEvent.OnClientEvent:Connect(function(purpose, instance, tInfo, propertyTable, tweenID, expectedProperties, expectedStartTime)
+			local tInfoTable = tInfo
+			if tInfo ~= nil then
+				tInfo = Table_To_TweenInfo(tInfo)
 			end
 
-
-			if runningTweens[instance] ~= nil and runningTweens[instance].PlaybackState ~= Enum.PlaybackState.Paused and runningTweensById[instance] ~= tweenID then -- im aware this will pick up paused tweens, however it doesn't matter (it did matter, i've fixed it now)
-				runningTweens[instance]:Cancel() -- stop previously running tween to run this one
-				warn(string.format('Cancelled a previously running tween for instance "%s" tor run a new requested one.', instance.Name))
+			if expectedProperties then
+				serverAssignProperties(instance, expectedProperties)
 			end
 
-            local tween 
-            if runningTweensById[instance] == tweenID then
-                tween = runningTweens[instance]
-            else 
-                tween = TweenService:Create(instance, tInfo, propertyTable)
-            end
-            runningTweens[instance] = tween
-            tween:Play()
-			runningTweensById[instance] = tweenID
-			
-			--print("TweenStarted",os.time(),existingFinish)
-			tween.Completed:Wait()
-			--print("TweenComplete",os.time(),existingFinish)
-			if latestFinish[instance] == existingFinish then
-				latestFinish[instance] = nil -- clear memory if this instance hasn't already been retweened.
-			end
-			
-			if runningTweens[instance] == tween then -- make sure it hasn't changed to a different tween
-				runningTweens[instance] = nil -- remove to save memory
-			end
-		end
+			local shortenBy = 0
+			if expectedStartTime and tInfo then
+				shortenBy = tick() - expectedStartTime
 
-		if purpose == "RunTween" then
-			runTween()
-		elseif purpose == "QueueTween" then
-			runTween(true) -- run as a queued tween
-		elseif purpose == "StopTween" then
-			if runningTweens[instance] ~= nil then -- check that the tween exists
-				runningTweens[instance]:Cancel() -- stop the tween
-				runningTweens[instance] = nil -- delete from table
-			else
-				warn("Tween being stopped does not exist or the instance itself.")
+				-- Recreate TweenInfo with the shortened time using tInfoTable
+				tInfo = TweenInfo.new(tInfoTable[1] - shortenBy, tInfoTable[2], tInfoTable[3], tInfoTable[4], tInfoTable[5], tInfoTable[6])
+				print ("Shortened by", shortenBy)
 			end
-		elseif purpose == "PauseTween" then
-			if runningTweens[instance] ~= nil then -- check that the tween exists
-				runningTweens[instance]:Pause() -- pause the tween
-			else
-				warn("Tween being paused does not exist.")
+
+			local function runTween(queued)
+				local finishTime = os.time() + tInfo.Time
+				latestFinish[instance] = latestFinish[instance] or os.time() -- cannot be nil.
+
+				local existingFinish = latestFinish[instance]
+				if queued and latestFinish[instance] >= os.time() then
+					local waitTime = (latestFinish[instance] - os.time())
+					latestFinish[instance] = finishTime + waitTime
+					existingFinish = latestFinish[instance]
+					task.wait(waitTime)
+				else
+					latestFinish[instance] = finishTime
+				end
+
+
+				if runningTweens[instance] ~= nil and runningTweens[instance].PlaybackState ~= Enum.PlaybackState.Paused and runningTweensById[instance] ~= tweenID then -- im aware this will pick up paused tweens, however it doesn't matter (it did matter, i've fixed it now)
+					runningTweens[instance]:Cancel() -- stop previously running tween to run this one
+					warn(string.format('Cancelled a previously running tween for instance "%s" tor run a new requested one.', instance.Name))
+				end
+
+				local tween 
+				if runningTweensById[instance] == tweenID then
+					tween = runningTweens[instance]
+				else 
+					tween = TweenService:Create(instance, tInfo, propertyTable)
+				end
+				runningTweens[instance] = tween
+				tween:Play()
+				runningTweensById[instance] = tweenID
+				
+				--print("TweenStarted",os.time(),existingFinish)
+				tween.Completed:Wait()
+				--print("TweenComplete",os.time(),existingFinish)
+				if latestFinish[instance] == existingFinish then
+					latestFinish[instance] = nil -- clear memory if this instance hasn't already been retweened.
+				end
+				
+				if runningTweens[instance] == tween then -- make sure it hasn't changed to a different tween
+					runningTweens[instance] = nil -- remove to save memory
+				end
 			end
-		end
-	end)
+
+			if purpose == "RunTween" then
+				runTween()
+			elseif purpose == "QueueTween" then
+				runTween(true) -- run as a queued tween
+			elseif purpose == "StopTween" then
+				if runningTweens[instance] ~= nil then -- check that the tween exists
+					runningTweens[instance]:Cancel() -- stop the tween
+					runningTweens[instance] = nil -- delete from table
+				else
+					warn("Tween being stopped does not exist or the instance itself.")
+				end
+			elseif purpose == "PauseTween" then
+				if runningTweens[instance] ~= nil then -- check that the tween exists
+					runningTweens[instance]:Pause() -- pause the tween
+				else
+					warn("Tween being paused does not exist.")
+				end
+			end
+		end)
+	end
 end
 
 return TweenModule

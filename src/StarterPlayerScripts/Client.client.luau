@@ -8,6 +8,8 @@ local GameGui : ScreenGui = PlayerGui.GameGui
 
 local ReplicatedStorage : ReplicatedStorage = Scrypt.Services.ReplicatedStorage
 
+local TweenModule = Scrypt.GetModule("TweenService2")
+
 Scrypt.ClientNetwork.ListenForPacket("WelcomeMessage", true, function(packetData)
 	print("Received welcome message: " .. tostring(packetData))
 end)
