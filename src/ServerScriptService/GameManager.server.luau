@@ -7,6 +7,7 @@ local RoundService = Scrypt.GetService("RoundService")
 local Teams = game:GetService("Teams")
 local Utilities = Scrypt.GetModule("Utilities")
 local TeamService = Scrypt.GetService("TeamService")
+local StairService = Scrypt.GetService("StairService")
 local RoundEvents
 
 -- Handles all functions for when the character gets added
@@ -15,15 +16,7 @@ local function CharacterAdded(Character: Model, Player: Player)
 end
 
 local function OnPlayerAdded(Player: Player)
-    -- Handle character addeds
-
-
-
-    -- while task.wait(1) do 
-
-
-    -- end
-    
+    -- Handle character addeds    
 	CharacterAdded(Player.Character or Player.CharacterAdded:Wait(), Player)
 	Player.CharacterAdded:Connect(function(Character)
 		CharacterAdded(Character, Player)
@@ -56,12 +49,6 @@ end
 Utilities.SafePlayerAdded(OnPlayerAdded)
 Scrypt.Services.Players.PlayerRemoving:Connect(OnPlayerRemoving)
 
-
-
-
-
-
-
 -- Initializers
 task.spawn(function()
     local Red, Blue, Intermission = TeamService.CreateTeams(Teams, {
@@ -71,13 +58,33 @@ task.spawn(function()
         Name = "Blue",
         TeamColor = BrickColor.Blue(),
     })
+
     repeat task.wait() until #Scrypt.Services.Players:GetPlayers() > 0
     RoundEvents = RoundService.Init()
-    RoundEvents.IntermissionStarted:Connect(function()
-        for i, v in ipairs(Scrypt.Services.Players:GetPlayers()) do
-            v.Team = nil
-        end
-    end)
+end)
+
+RoundEvents.IntermissionStarted:Connect(function()
+    for i, v in ipairs(Scrypt.Services.Players:GetPlayers()) do
+        v.Team = nil
+    end
+end)
+
+local Cleanup
+RoundEvents.RoundStarted:Connect(function()
+    Cleanup = StairService.StartSpawning()
+    for i, player: Player in ipairs(Scrypt.Services.Players:GetPlayers()) do
+        StairService.HandleBlock(player)
+    end
+end)
+
+RoundEvents.RoundEnded:Connect(function()
+    StairService.ResetStairs("Red")
+    StairService.ResetStairs("Blue")
+    Cleanup()
+end)
+
+game:BindToClose(function()
+    -- Cleanup
 end)
 
 -- Secondary setup
@@ -91,6 +98,6 @@ end)
 -- end)
 
 -- Loops
---while true do
---	task.wait(1)
---end
+-- while true do
+-- 	task.wait(1)
+-- end

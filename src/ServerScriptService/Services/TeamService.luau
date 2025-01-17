@@ -73,13 +73,12 @@ function TeamService.CreateTeams(TeamsLocation: Instance, ...: TeamParams): ...T
 end
 
 function TeamService.GetBaseChild(TeamName: string, ChildName: string?): Folder
+    assert(TeamName, "Team name not provided.")
+    assert(ChildName, "Child name not provided.")
+
     local MainFolder = workspace:FindFirstChild("Bases"):: Folder
     local TeamFolder = MainFolder:FindFirstChild(TeamName):: Folder
     assert(TeamFolder, "Team folder not found in workspace.")
-
-    if ChildName == nil then
-        return TeamFolder
-    end
 
     local Child = TeamFolder:FindFirstChild(ChildName)
     assert(Child, "Child not found in team folder.")

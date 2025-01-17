@@ -15,36 +15,45 @@ Scrypt.Init()
 
 local CurrencyService = {}
 
-local PlayerCoins = {}
+local PlayerCoins: {[Player]: number} = {}
 
 function CurrencyService.RewardPlayer(Player : Player, BlocksPlaced: number) -- Give the player a certain ammount
     -- local Coins = 
-    local AmmtToReward = 10 * BlocksPlaced
+    local AmountToReward = 10 * BlocksPlaced
     if PlayerCoins[Player] then
-        PlayerCoins[Player] = PlayerCoins[Player] + AmmtToReward
+        PlayerCoins[Player] = PlayerCoins[Player] + AmountToReward
     else
-        PlayerCoins[Player] = AmmtToReward
+        PlayerCoins[Player] = AmountToReward
     end
+    
 	Scrypt.ServerNetwork.SendPacketToClient(
 		"CurrencyUpdate",
-		{ Address = Player, Data = AmmtToReward, Reliable = true }
+		{ Address = Player, Data = AmountToReward, Reliable = true }
 	)
     -- TODO Make sure to check if the player has any type of vip
 
 end
 
-
-
-function CurrencyService.HandlePurchase(Player : Player, Cost: number)
-    
-
-
-
+function CurrencyService.RemovePlayerCurrency(Player: Player, Amount: number)
+    if not PlayerCoins[Player] then return 0 end
+    PlayerCoins[Player] -= Amount
 end
 
 
-function CurrencyService.GetPlayerCurrency(Player : Player)
+function CurrencyService.HandlePurchase(Player: Player, Cost: number): boolean
+    if not PlayerCoins[Player] then return false end
+
+    if PlayerCoins[Player] >= Cost then
+        PlayerCoins[Player] -= Cost
+        return true
+    end
+
+    return false
+end
+
+function CurrencyService.GetPlayerCurrency(Player: Player): number
     return PlayerCoins[Player] or 0 
 end
+
     
 return CurrencyService

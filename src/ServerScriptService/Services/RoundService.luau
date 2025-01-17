@@ -19,9 +19,9 @@ type RulesType = {
 }
 
 local RULES: RulesType = {
-    IntermissionTime = 1,
+    IntermissionTime = 5,
     SpawnTime = 5,
-    RoundTime = 200,
+    RoundTime = 10,
     PlayersNeeded = 1,
 }
 
@@ -64,36 +64,36 @@ function RoundService.StartRound()
 	end)
 end
 
+local function TeleportPlayer(player: Player, TeamsLocation: Instance)
+    local playerTeam = player.Team
+    if not playerTeam then
+        warn("Player " .. player.Name .. " does not have a team assigned.")
+        return
+    end
+
+    local teamLocation = TeamsLocation:FindFirstChild(playerTeam.Name):: Instance
+    local teamSpawn = teamLocation:FindFirstChildWhichIsA("SpawnLocation"):: SpawnLocation
+    local character = player.Character
+
+    if not teamSpawn then
+        warn("Spawn location not found for team: " .. playerTeam.Name)
+        return
+    end
+
+    if not character then
+        warn("Could not find character for player: " .. player.Name)
+        return
+    end
+    
+    character:PivotTo(teamSpawn.CFrame*CFrame.new(0, 3, 0))
+end
 
 -- 3. Teleport to Spawn Points Function
 function RoundService.TeleportPlayers(TeamsLocation: Instance)
-    -- EDIT: Made the teams folder user-provided to avoid hardcoding the teams folder location
     assert(TeamsLocation, "Teams folder not provided.")
 
-    -- EDIT: Removed Players and Offset variables since they can be used directly in the loop
-    -- EDIT: Made this loop more general. Instead of using hardcoded team names, it now uses the team folder provided by the user and trys to teleport players based on their assigned team
     for _, player in ipairs(Players:GetPlayers()) do
-        local playerTeam = player.Team
-        if not playerTeam then
-            warn("Player " .. player.Name .. " does not have a team assigned.")
-            continue
-        end
-
-        local teamLocation = TeamsLocation:FindFirstChild(playerTeam.Name):: Instance
-        local teamSpawn = teamLocation:FindFirstChildWhichIsA("SpawnLocation"):: SpawnLocation
-        local character = player.Character
-
-        if not teamSpawn then
-            warn("Spawn location not found for team: " .. playerTeam.Name)
-            continue
-        end
-
-        if not character then
-            warn("Could not find character for player: " .. player.Name)
-            continue
-        end
-        
-        character:PivotTo(teamSpawn.CFrame*CFrame.new(0, 3, 0))
+        TeleportPlayer(player, TeamsLocation)
     end
 end
 
@@ -116,7 +116,6 @@ local function LoopRounds()
     end
 end
 
--- MAYBE: Will move this to the game manager and instead of using a loop, use the Event driven paradigm to handle the game state 
 function RoundService.Init(): InitResult
     local InitResult = {
         IntermissionStarted = IntermissionStartedEvent,
