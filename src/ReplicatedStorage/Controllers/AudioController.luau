@@ -62,11 +62,22 @@ function AudioController.LoopSound(SoundName: string, Volume: number?): Sound | 
 	
 	return Sound
 end
-
+local function GetRandomPitch(variationAmount: number)
+    -- Ensure variationAmount is valid
+    variationAmount = math.clamp(variationAmount, 0, 1) -- Prevent it from exceeding valid bounds
+    
+    -- Calculate range dynamically
+    local minPitch = 1 - (0.3 * variationAmount) -- Minimum pitch (0.7 when variationAmount is 1)
+    local maxPitch = 1 + (0.3 * variationAmount) -- Maximum pitch (1.3 when variationAmount is 1)
+    
+    -- Generate a random pitch within the range
+    local randomPitch = math.random(minPitch * 100, maxPitch * 100) / 100
+    return randomPitch
+end
 -- Plays a Sound X times
-function AudioController.PlaySound(SoundName: string, Plays: number?, Cooldown: number?, Volume: number?, Position: Vector3?): boolean
+function AudioController.PlaySound(SoundName: string, Plays: number?, Cooldown: number?, Volume: number?, Position: Vector3?, PitchVariation): boolean
 	assert(SoundName and typeof(SoundName) == "string", `SoundName is not valid. Expected string got: {typeof(SoundName)}`)
-	
+	print("hellow orld")
 	local Sound = GetSound(SoundName)
 	local SoundPart
 	
@@ -75,20 +86,30 @@ function AudioController.PlaySound(SoundName: string, Plays: number?, Cooldown: 
 	--Default values
 	local SoundPlays: number = Plays or 1
 	local SoundVolume: number = Volume or 0.5
-	Cooldown = Cooldown or Sound.TimeLength
+	if Cooldown == 0 then Cooldown = Sound.TimeLength end
+	-- Cooldown = Cooldown or Sound.TimeLength
 	Sound.Volume = SoundVolume
 	Sound.TimePosition = 0
 	
 	if Position then SoundPart = CreateSoundPart(Position); Sound.Parent = SoundPart end
-	
 	-- Handle playing the module
+	if PitchVariation ~= nil then
+		local PitchEffect = Instance.new("PitchShiftSoundEffect")
+		
+		PitchEffect.Octave = GetRandomPitch(PitchVariation)
+		print(GetRandomPitch(PitchVariation))
+		PitchEffect.Parent = Sound
+		PitchEffect.Enabled = true
+	end
+
 	task.defer(function()
 		for count = 1, SoundPlays, 1 do
+			-- print("Playing sound")
+			-- task.wait(math.random(0,0.15)) 
 			Sound:Play()
 			task.wait(Cooldown)
 		end
-		
-		Scrypt.Services.Debris:AddItem(Sound, Cooldown)
+		Scrypt.Services.Debris:AddItem(Sound, Cooldown) -- Changed from Cooldown to TimeLength instead
 		if SoundPart then Scrypt.Services.Debris:AddItem(SoundPart, Cooldown) end
 	end)
 	

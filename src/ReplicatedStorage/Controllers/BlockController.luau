@@ -7,6 +7,7 @@ local ReplicatedStorage : ReplicatedStorage = Scrypt.Services.ReplicatedStorage
 local TweenService : TweenService = Scrypt.Services.TweenService
 local BlockControler = {}
 
+local AudioController = Scrypt.GetController('AudioController')
 local CurrentPlayingAnimation : AnimationTrack
 
 type BlockPacketData = {
@@ -34,7 +35,8 @@ function BlockControler.HandleBlockPlacement(PlacementVector : Vector3, AmmountO
 	if CurrentPlayingAnimation then
 		CurrentPlayingAnimation:Stop()
 	end
-    
+    AudioController.PlaySound('BlockPlace', 1, 0, .5, PlacementVector, 0.35) 
+    -- print("Placed a block here")
     local CopyPart = Instance.new("Part")
     CopyPart.Parent = workspace
     CopyPart.Size = Vector3.new(2,2,2)
@@ -60,7 +62,6 @@ function BlockControler.HandleBlocks()
             CurrentPlayingAnimation = Animator:LoadAnimation(BlockToolAnimation)
             CurrentPlayingAnimation:Play()
             StartTracking()
-
             return
         elseif packetData.Status == false then
             BlockControler.HandleBlockPlacement(packetData.VectorPlacement)

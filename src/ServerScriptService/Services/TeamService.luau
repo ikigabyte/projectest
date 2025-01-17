@@ -55,7 +55,7 @@ local function GetLowestTeam(...: Team): Team?
         return nil
     end
 
-    return Teams.Red
+    return Teams.Red --! Disable this after 
     -- return LowestTeam
 end
 
@@ -105,6 +105,7 @@ function TeamService.FillTeamsEvenly(...: Team)
         end
 
         local RandomTeam = Teams[RandomSet:NextInteger(1, #Teams)]
+        print(RandomTeam);
         AssignTeam(player, RandomTeam)
     end
 
