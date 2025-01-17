@@ -77,7 +77,6 @@ end
 -- Plays a Sound X times
 function AudioController.PlaySound(SoundName: string, Plays: number?, Cooldown: number?, Volume: number?, Position: Vector3?, PitchVariation): boolean
 	assert(SoundName and typeof(SoundName) == "string", `SoundName is not valid. Expected string got: {typeof(SoundName)}`)
-	print("hellow orld")
 	local Sound = GetSound(SoundName)
 	local SoundPart
 	
@@ -97,14 +96,12 @@ function AudioController.PlaySound(SoundName: string, Plays: number?, Cooldown: 
 		local PitchEffect = Instance.new("PitchShiftSoundEffect")
 		
 		PitchEffect.Octave = GetRandomPitch(PitchVariation)
-		print(GetRandomPitch(PitchVariation))
-		PitchEffect.Parent = Sound
+		-- print(GetRandomPitch(PitchVariation))
 		PitchEffect.Enabled = true
 	end
 
 	task.defer(function()
 		for count = 1, SoundPlays, 1 do
-			-- print("Playing sound")
 			-- task.wait(math.random(0,0.15)) 
 			Sound:Play()
 			task.wait(Cooldown)
