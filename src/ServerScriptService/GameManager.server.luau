@@ -83,7 +83,7 @@ RoundStartedEvent:Connect(function()
     EndTime = os.time() + 10
     Cleanup = StairService.StartSpawning()
     for i, player: Player in ipairs(Scrypt.Services.Players:GetPlayers()) do
-        StairService.HandleBlock(player)
+        -- StairService.HandleBlock(player)
     end
 end)
 
@@ -118,6 +118,11 @@ end)
 while true do
 	task.wait(1)
     if EndTime then
-        Scrypt.ServerNetwork.SendPacketToAllClients("UpdateRoundTime", EndTime - os.time())
+        print('Updating time, gonna find a different way to do this')
+        -- Scrypt.ServerNetwork.PingAllClients('UpdateRoundTime', false)
+        
+        -- Scrypt.ServerNetwork.SendPacketToAllClients()
+        -- Scrypt.ServerNetwork.SendPacketToAllClients("UpdateRoundTime", EndTime - os.time(), false)
+        -- Scrypt.ServerNetwork.SendPacketToAllClients("UpdateRoundTime", EndTime - os.time())
     end
 end

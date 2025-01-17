@@ -12,11 +12,9 @@ end
 
 function PlayerService.GetMaxBlocksHold(Player: Player): number
     local Amount = Player:GetAttribute("MaxBlocksHold")
-
     if not Amount then
-        Amount = 6
+        Amount = 4
     end
-
     return Amount
 end
 
@@ -25,6 +23,12 @@ function PlayerService.GetTeam(Player: Player): Team
 end
 
 function PlayerService.GetData(Player: Player)
+    
+end
+
+
+function PlayerService.GetBlockSkin(Player : Player)
+    return 'Lava'
     
 end
 

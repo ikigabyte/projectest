@@ -3,8 +3,26 @@
 local Scrypt = require(game:GetService("ReplicatedStorage").Scrypt)
 Scrypt.Init()
 
+local TopbarPlus = require(Scrypt.Services.ReplicatedStorage:WaitForChild("TopbarPlus"):WaitForChild("Icon"))
+
 local TweenService : TweenService = Scrypt.Services.TweenService
 local UIController = {}
+
+local PlayerSettings = {
+    SFX = true,
+	MUSIC = true,
+}
+local music = "rbxassetid://113748648632937"
+local muteMusic = "rbxassetid://121000796688227"
+local rewardAsset = "rbxassetid://129074893657038"
+
+
+local status = false
+local function OnButtonClick(icon)
+    status = not status
+    print(status)
+    icon:setImage(status and muteMusic or music)
+end
 
 UIController.SpawnRandomCoins = function(numberOfIcons, iconOfCurrency: ImageLabel, framePositionAndCapture: Frame, finalPosition: UDim2)
     for i = 1, numberOfIcons do
@@ -49,7 +67,35 @@ UIController.UpdateTimerLabel = function(number)
     Scrypt.GUI.GameGui.ProgressFrame.Timer.TimerLabel.Text = number
 end
 
+UIController.SetupTopBarFeatures = function()
+    -- local icon = TopbarPlus.new:setImage(asset)
+    local muteMusicIcon
+    muteMusicIcon = TopbarPlus.new()
+    :setImage(music)
+    muteMusicIcon.deselected:Connect(function()
+        OnButtonClick(muteMusicIcon)
+    end)
+    muteMusicIcon.selected:Connect(function()
+        OnButtonClick(muteMusicIcon)
+    end)
 
+    local muteSFXIcon
+    muteSFXIcon = TopbarPlus.new()
+    :setImage(music)
+    muteSFXIcon.deselected:Connect(function()
+        OnButtonClick(muteSFXIcon)
+    end)
+    muteSFXIcon.selected:Connect(function()
+        OnButtonClick(muteSFXIcon)
+    end)
+
+    local rewardIcon
+    rewardIcon = TopbarPlus.new()
+    :setImage(rewardAsset)
+    rewardIcon:setLabel("Rewards")
+    print("set up all the top bar features here")
+
+end
 
 UIController.HandleCurrencyUpdate  = function(Ammount: numberincreaseOrDecrease)
     -- print(Scrypt.GUI)

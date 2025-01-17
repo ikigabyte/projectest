@@ -21,7 +21,7 @@ type RulesType = {
 local RULES: RulesType = {
     IntermissionTime = 2,
     SpawnTime = 5,
-    RoundTime = 10,
+    RoundTime = 100,
     PlayersNeeded = 1,
 }
 
@@ -34,6 +34,7 @@ type InitResult = {
 
 -- Renamed and fixed type
 local RoundThread: thread
+
 local IntermissionStartedEvent = Scrypt.CreateSignal("IntermissionStarted") 
 local IntermissionEndedEvent = Scrypt.CreateSignal("IntermissionEnded")
 local RoundStartedEvent = Scrypt.CreateSignal("RoundStarted")
@@ -42,10 +43,10 @@ local RoundEndedEvent = Scrypt.CreateSignal("RoundEndedConnection")
 -- 1. Intermission Function
 function RoundService.Intermission(Duration: number)
     assert(Duration, "Duration not provided.") -- Added assert to check if Duration is provided
-    -- EDIT: Now uses string interpolation to print the duration
     print(`Intermission started. Waiting for {tostring(Duration)} seconds...`)
     IntermissionStartedEvent:Fire()
     for i = Duration, 1, -1 do
+        Scrypt.ServerNetwork.SendPacketToAllClients("UpdateRoundTime",i, false)
         task.wait(1)
     end
 
@@ -55,7 +56,6 @@ end
 function RoundService.StartRound()
     RoundStartedEvent:Fire()
     task.wait(RULES.RoundTime)
-
 	RoundThread = task.defer(function()
         RoundEndedEvent:Fire()
 	end)
@@ -99,9 +99,9 @@ local function LoopRounds()
         if #Players:GetPlayers() >= RULES.PlayersNeeded then
             RoundService.Intermission(RULES.IntermissionTime)
             TeamService.FillTeamsEvenly(unpack(game:GetService("Teams"):GetChildren()))
-
             RoundService.TeleportPlayers(workspace:FindFirstChild("Bases"):: Instance)
             RoundService.StartRound()
+            print("Round started.")
             continue -- EDIT: Removed else in favor of continue        
         end
 

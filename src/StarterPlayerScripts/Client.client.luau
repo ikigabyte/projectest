@@ -9,9 +9,9 @@ local TweenModule = Scrypt.GetModule("TweenService2")
 
 local UIController = Scrypt.GetController("UIController")
 
-Scrypt.ClientNetwork.ListenForPacket("WelcomeMessage", true, function(packetData)
-	print("Received welcome message: " .. tostring(packetData))
-end)
+-- Scrypt.ClientNetwork.ListenForPacket("WelcomeMessage", true, function(packetData)
+-- 	print("Received welcome message: " .. tostring(packetData))
+-- end)
 
 local BlockController= Scrypt.GetController("BlockController")
 BlockController.HandleBlocks();
@@ -40,7 +40,10 @@ local function secondsToTime(seconds: number): string
 end
 
 Scrypt.ClientNetwork.ListenForPacket("UpdateRoundTime", true, function(packetData)
+	-- print("recieved a request to update the progress of the data")
 	Scrypt.GUI.GameGui.ProgressFrame.Timer.TimerLabel.Text = secondsToTime(packetData)
 end)
+
+UIController.SetupTopBarFeatures();
 
 task.wait(2)
