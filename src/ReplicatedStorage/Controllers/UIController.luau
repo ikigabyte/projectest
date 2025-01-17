@@ -26,17 +26,17 @@ UIController.SpawnRandomCoins = function(numberOfIcons, iconOfCurrency: ImageLab
         -- Tween to the random position
         local TweenToRandom = TweenService:Create(
             icon,
-            TweenInfo.new(.5, Enum.EasingStyle.Bounce, Enum.EasingDirection.Out),
+            TweenInfo.new(.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
             { Position = randomPosition }
         )
 
         -- Tween to the final position (zoom-in effect)
         local TweenToFinal = TweenService:Create(
             icon,
-            TweenInfo.new(.3, Enum.EasingStyle.Quad, Enum.EasingDirection.In),
+            TweenInfo.new(.3, Enum.EasingStyle.Sine, Enum.EasingDirection.In),
             { Position = finalPosition, Size = UDim2.fromScale(0,0) } -- Adjust final size if needed
         )
-
+        task.wait(0.03)
         -- Chain the tweens
         TweenToRandom:Play()
         TweenToRandom.Completed:Connect(function()

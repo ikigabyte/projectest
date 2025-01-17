@@ -60,26 +60,43 @@ task.spawn(function()
     })
 
     repeat task.wait() until #Scrypt.Services.Players:GetPlayers() > 0
-    RoundEvents = RoundService.Init()
+    RoundService.Init()
 end)
 
-RoundEvents.IntermissionStarted:Connect(function()
+local IntermissionStartedEvent = Scrypt.CreateSignal("IntermissionStarted") 
+local IntermissionEndedEvent = Scrypt.CreateSignal("IntermissionEnded")
+local RoundStartedEvent = Scrypt.CreateSignal("RoundStarted")
+local RoundEndedEvent = Scrypt.CreateSignal("RoundEndedConnection")
+
+IntermissionStartedEvent:Connect(function()
     for i, v in ipairs(Scrypt.Services.Players:GetPlayers()) do
         v.Team = nil
     end
 end)
 
 local Cleanup
-RoundEvents.RoundStarted:Connect(function()
+
+local EndTime = os.time() + 10
+
+RoundStartedEvent:Connect(function()
+    print("ROUND STARTED")
+    EndTime = os.time() + 10
     Cleanup = StairService.StartSpawning()
     for i, player: Player in ipairs(Scrypt.Services.Players:GetPlayers()) do
         StairService.HandleBlock(player)
     end
 end)
 
-RoundEvents.RoundEnded:Connect(function()
+RoundEndedEvent:Connect(function()
+    print("ROUND ENDED")
+    EndTime = nil
     StairService.ResetStairs("Red")
     StairService.ResetStairs("Blue")
+
+    for i, player: Player in ipairs(Scrypt.Services.Players:GetPlayers()) do
+       player.Backpack:ClearAllChildren()
+    end
+    
     Cleanup()
 end)
 
@@ -98,6 +115,9 @@ end)
 -- end)
 
 -- Loops
--- while true do
--- 	task.wait(1)
--- end
+while true do
+	task.wait(1)
+    if EndTime then
+        Scrypt.ServerNetwork.SendPacketToAllClients("UpdateRoundTime", EndTime - os.time())
+    end
+end

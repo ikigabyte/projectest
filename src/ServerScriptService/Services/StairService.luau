@@ -10,9 +10,7 @@ local TeamService = Scrypt.GetService("TeamService")
 local CurrencyService = Scrypt.GetService("CurrencyService")
 local QueueStruct = Scrypt.GetModule("Queue")
 
-
 -- EDIT: Moved from RoundService
-local isProcessing = false -- Variable to track if the queue is already being processed
 local BlueQueuePlacement = {
     Processing = false,
     Requests = QueueStruct.new()
@@ -21,74 +19,116 @@ local RedQueuePlacement = {
     Processing = false,
     Requests = QueueStruct.new()
 }
-local RedTeam = {
-    RedQueuePlacement = {},
-    StairPlacementZone = nil,
+
+type QueueRequest = {
+    Player: Player,
+    Blocks: number
 }
 
-local function ProcessBlockPlacementQueue(QueueToProcess: string, StaircaseModel: Model)
-    local Queue = (QueueToProcess == "Blue") and BlueQueuePlacement or RedQueuePlacement
-    
-    if Queue.Processing then
-        warn(QueueToProcess.." queue is already processing")
-        return
-    end
-    Queue.Processing = true
+local PROCESS_DELAY = 0.2
+local DEFAULT_SORT_VALUE = 0
 
+-- Sort blocks by name (1, 2, 3, 4, etc)
+local function sortBlocksByName(a: Instance, b: Instance): boolean
+    local numA = tonumber(a.Name) or DEFAULT_SORT_VALUE
+    local numB = tonumber(b.Name) or DEFAULT_SORT_VALUE
+    return numA < numB
+end
+
+-- Process block placement
+local function ProcessBlock(block: Part, player: Player, hitbox: Part, wall: Part): boolean
+    if block.Name == "Hitbox" or block.Name == "Wall" or 
+       not block:IsA("Part") or 
+       block.CanCollide or 
+       block.Transparency ~= 1 then
+        return false
+    end
+
+    block.CanCollide = true
+    block.Transparency = 0
+    
+    Scrypt.ServerNetwork.SendPacketToClient("BlockTool", {
+        Address = player,
+        Data = { Status = false, VectorPlacement = block.Position },
+        Reliable = true
+    })
+    
+    -- Check if row is completed
+    if (tonumber(block.Name) - 1)%8 == 0 then
+        hitbox:PivotTo(block.CFrame*CFrame.new(block.Size.X*0.5, 0, block.Size.Z*0.5))
+        wall:PivotTo(block.CFrame*CFrame.new(
+            block.Size.X*0.5, -block.Size.Y*0.5, -block.Size.Z*0.5
+        )*CFrame.new(
+            0, wall.Size.Y*0.5, -wall.Size.Z*0.5
+        ))
+    end
+    
+    return true
+end
+
+-- Processes the queue of block placement requests for a specific team
+local function ProcessBlockPlacementQueue(queueToProcess: string, staircaseModel: Model)
+    -- Get the queue for the specified team
+    local queue = (queueToProcess == "Blue") and BlueQueuePlacement or RedQueuePlacement
+    
+    -- Prevent multiple simultaneous processing of the same queue
+    if queue.Processing then return end
+    queue.Processing = true
+
+    -- Process queue in a separate thread
     task.defer(function()
-        print(true)
-        while not Queue.Requests:isEmpty() do
-            local request = Queue.Requests:pop()
+        while not queue.Requests:isEmpty() do
+            -- Get next request from queue
+            local request: QueueRequest = queue.Requests:pop()
             
-            -- Validate request
-            if not request then
-                warn("Invalid request received in "..QueueToProcess.." queue")
+            if not request then continue end
+            
+            local player, blocks = request.Player, request.Blocks
+            local hitbox = staircaseModel:FindFirstChild("Hitbox")
+            local wall = staircaseModel:FindFirstChild("Wall")
+            
+            -- Validate hitbox exists
+            if not hitbox then
+                warn("No hitbox found in staircase model")
+                continue
+            end
+
+            -- Validate wall exists
+            if not wall then
+                warn("No wall found in staircase model")
                 continue
             end
             
-            local Player = request.Player
-            local Blocks = request.Blocks
+            -- Sort blocks numerically by name
+            local sortedBlocks = staircaseModel:GetChildren()
+            table.sort(sortedBlocks, sortBlocksByName)
             
-            -- Debug logging
-            print(string.format("Processing %d blocks for %s", Blocks, Player.Name))
+            -- Give currency reward to player
+            CurrencyService.RewardPlayer(player, blocks)
             
-            local children = StaircaseModel:GetChildren()
-            table.sort(children, function(a, b)
-                local numA = tonumber(a.Name) or 0
-                local numB = tonumber(b.Name) or 0
-                return numA < numB
-            end)
-            print("RUNNING")
-            CurrencyService.RewardPlayer(Player, Blocks)
-            
+            -- Process blocks up to requested amount
             local processedBlocks = 0
-            for _, child in ipairs(children) do
-                if child.Name == "Hitbox" then continue end
-                if child:IsA("Part") and not child.CanCollide and child.Transparency == 1 then
-                    child.CanCollide = true
-                    child.Transparency = 0
-                    Scrypt.ServerNetwork.SendPacketToClient(
-                        "BlockTool",
-                        { Address = Player, Data = { Status = false, VectorPlacement = child.Position }, Reliable = true }
-                    )
+            for _, block in ipairs(sortedBlocks) do
+                if ProcessBlock(block, player, hitbox, wall) then
                     processedBlocks += 1
-                    StaircaseModel:FindFirstChild("Hitbox"):PivotTo(child.CFrame)
-                    if processedBlocks >= Blocks then
-                        break
-                    end
+                    if processedBlocks >= blocks then break end
                 end
             end
             
-            if processedBlocks < Blocks then
-                warn(string.format("Queue %s: Requested %d blocks but only processed %d", 
-                    QueueToProcess, Blocks, processedBlocks))
+            -- Log warning if unable to process all requested blocks
+            if processedBlocks < blocks then
+                warn(string.format(
+                    "Queue %s: Requested %d blocks but only processed %d", 
+                    queueToProcess, blocks, processedBlocks
+                ))
             end
             
-            task.wait(0.2)
+            -- Wait before processing next request
+            task.wait(PROCESS_DELAY)
         end
         
-        Queue.Processing = false
-        print(QueueToProcess.." queue processing complete")
+        -- Mark queue as no longer processing
+        queue.Processing = false
     end)
 end
 
@@ -97,14 +137,25 @@ function StairService.ResetStairs(Team: string)
     local children = StaircaseModel:GetChildren()
 
     for _, child: BasePart in ipairs(children) do
-        if child.CanCollide and child.Transparency == 0 then
+        if child:IsA("BasePart") and child.Name ~= "1" and child.Name ~= "Wall" then
             child.CanCollide = false
             child.Transparency = 1
         end
     end
+
+    local Hitbox = StaircaseModel:FindFirstChild("Hitbox")
+    local Wall = StaircaseModel:FindFirstChild("Wall")
+
+    local FirstPart = StaircaseModel:FindFirstChild("1")
+    Hitbox:PivotTo(FirstPart.CFrame*CFrame.new(FirstPart.Size.X*0.5, 0, FirstPart.Size.Z*0.5))
+
+    Wall:PivotTo(FirstPart.CFrame*CFrame.new(
+        FirstPart.Size.X*0.5, -FirstPart.Size.Y*0.5, -FirstPart.Size.Z*0.5
+    )*CFrame.new(
+        0, Wall.Size.Y*0.5, -Wall.Size.Z*0.5
+    ))
 end
 
--- EDIT: Moved from RoundService
 function StairService.HandleBlock(Player : Player)
     local BlockTool = Instance.new("Tool")
     local Character = Player.Character
@@ -113,16 +164,15 @@ function StairService.HandleBlock(Player : Player)
     local RootPart = Character.PrimaryPart
     assert(RootPart, "Root part not found.")
 
-    if Character:FindFirstChild("BlockTool") then
-        return
-        -- Character.BlockTool:Destroy()
-    end
+    if Character:FindFirstChild("BlockTool") then return end
 
     BlockTool.Name = "BlockTool"
     BlockTool.Parent = Character
     BlockTool.RequiresHandle = false
+
     local Upgrade = PlayerService.GetBlockUpgrade(Player)
     BlockTool:SetAttribute("BlockUpgrade", Upgrade)
+
     local meshPart = Instance.new("Part")
     meshPart.Parent = BlockTool
 
@@ -137,14 +187,10 @@ function StairService.HandleBlock(Player : Player)
     weld.Part1 = RootPart 
 
     Scrypt.ServerNetwork.SendPacketToClient("BlockTool", {Address = Player, Data = {Status = true}, Reliable = true})
-    -- print("the player has been pinged here")
     --TODO ABILITY TO CREATE A STACK OF BLOCKS before giving to the player and then setting a primary part cframe here as well
 end
 
-function StairService.StartSpawning() -- ! It has to get both teams and start spawning the blocks in each respective zone
-	local CollectionPart: Part = TeamService.GetBaseChild("Red", "CollectionPart") :: Part
-    CollectionPart:SetAttribute("BlockCount", 0)
-
+local function OnBlockCreated(CollectionPart: BasePart): RBXScriptConnection
     local Connection: RBXScriptConnection
     Connection = Scrypt.ServerNetwork.ListenForPacket("Blocktest", true, function(Player, Data)
         local Team = tostring(Player.Team)
@@ -164,7 +210,7 @@ function StairService.StartSpawning() -- ! It has to get both teams and start sp
     
         -- Get correct queue based on team
         local Queue = Team == "Red" and RedQueuePlacement or BlueQueuePlacement
-        local BlockAmount = CollectionPart:GetAttribute("BlockCount")
+        local BlockAmount = math.min(CollectionPart:GetAttribute("BlockCount"):: number, PlayerService.GetMaxBlocksHold(Player))
         local PlacementData = {
             Blocks = BlockAmount,
             Player = Player,
@@ -175,18 +221,33 @@ function StairService.StartSpawning() -- ! It has to get both teams and start sp
         
         -- Process queue with correct team name
         ProcessBlockPlacementQueue(Team == "Red" and "Red" or "Blue", StaircaseModel)
-        CollectionPart:SetAttribute("BlockCount", 0)
+        CollectionPart:SetAttribute("BlockCount", (CollectionPart:GetAttribute("BlockCount"):: number) - BlockAmount)
         BlockTool:Destroy()
     end)
 
-	-- Spawn in Blocks
-	local TeamZone = Zone.fromRegion(CollectionPart.CFrame, Vector3.new(15, 15, 15))
-	TeamZone.playerEntered:Connect(
-		function(player: Player) -- Calculate how many the player needs to grab and how many are in the base
-			StairService.HandleBlock(player)
-			print("Now giving player a block to do something here with")
-		end
-	)
+    return Connection
+end
+
+local function SetupTeamZone(CollectionPart: BasePart): RBXScriptConnection
+    -- Spawn in Blocks
+    local TeamZone = Zone.fromRegion(CollectionPart.CFrame, Vector3.new(15, 15, 15))
+    local Connection
+    Connection = TeamZone.playerEntered:Connect(
+        function(player: Player) -- Calculate how many the player needs to grab and how many are in the base
+            StairService.HandleBlock(player)
+            -- print("Now giving player a block to do something here with")
+        end
+    )
+
+    return Connection
+end
+
+function StairService.StartSpawning() -- ! It has to get both teams and start spawning the blocks in each respective zone
+	local CollectionPart: Part = TeamService.GetBaseChild("Red", "CollectionPart") :: Part
+    CollectionPart:SetAttribute("BlockCount", 0)
+
+    local Connection = OnBlockCreated(CollectionPart)
+    local Connection2 = SetupTeamZone(CollectionPart)
     
     local TRUE = true
     local Studs = CollectionPart.Parent.Upgrades.StudsPerSecond.Value
@@ -202,6 +263,7 @@ function StairService.StartSpawning() -- ! It has to get both teams and start sp
         -- Cleanup
         TRUE = false
         Connection:Disconnect()
+        Connection2:Disconnect()
     end
  end
 

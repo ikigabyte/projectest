@@ -34,12 +34,10 @@ type InitResult = {
 
 -- Renamed and fixed type
 local RoundThread: thread
-local IntermissionStartedEvent = Scrypt.CreateSignal("IntermissionStarted") -- NEW
-local IntermissionEndedEvent = Scrypt.CreateSignal("IntermissionEnded") -- NEW
-
--- EDIT: Addeed round events
-local RoundStartedEvent = Scrypt.CreateSignal("RoundStarted") -- NEW
-local RoundEndedEvent = Scrypt.CreateSignal("RoundEndedConnection") -- NEW
+local IntermissionStartedEvent = Scrypt.CreateSignal("IntermissionStarted") 
+local IntermissionEndedEvent = Scrypt.CreateSignal("IntermissionEnded")
+local RoundStartedEvent = Scrypt.CreateSignal("RoundStarted")
+local RoundEndedEvent = Scrypt.CreateSignal("RoundEndedConnection")
 
 -- 1. Intermission Function
 function RoundService.Intermission(Duration: number)
@@ -55,12 +53,11 @@ function RoundService.Intermission(Duration: number)
 end
 
 function RoundService.StartRound()
-	-- print("Round started.")
-    StairService.StartSpawning()
+    RoundStartedEvent:Fire()
     task.wait(RULES.RoundTime)
-    -- EDIT: changed from task.defer to task.spawn. Also changed variable name to RoundThread since spawn and defer return threads not connections
+
 	RoundThread = task.defer(function()
-		print("Round ended.")
+        RoundEndedEvent:Fire()
 	end)
 end
 
@@ -116,16 +113,9 @@ local function LoopRounds()
     end
 end
 
-function RoundService.Init(): InitResult
-    local InitResult = {
-        IntermissionStarted = IntermissionStartedEvent,
-        IntermissionEnded = IntermissionEndedEvent,
-        RoundStarted = RoundStartedEvent,
-        RoundEnded = RoundEndedEvent,
-    }
-
+function RoundService.Init()
     task.defer(LoopRounds)
-    return InitResult
+    return
 end
 
 return RoundService

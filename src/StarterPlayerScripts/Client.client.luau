@@ -29,8 +29,18 @@ end)
 
 Scrypt.ClientNetwork.ListenForPacket("CurrencyUpdate", true, function(packetData)
 	Scrypt.GUI.GameGui.Cash.Amount.Text = tostring(packetData)
-	print("updated here")
+	-- print("updated here")
 end)
 
+-- function to convert seconds into a time format (TODO MOVE TO SEPARATE SCRIPT)
+local function secondsToTime(seconds: number): string
+	local minutes = math.floor(seconds / 60)
+	local seconds = seconds % 60
+	return string.format("%02d:%02d", minutes, seconds)
+end
+
+Scrypt.ClientNetwork.ListenForPacket("UpdateRoundTime", true, function(packetData)
+	Scrypt.GUI.GameGui.ProgressFrame.Timer.TimerLabel.Text = secondsToTime(packetData)
+end)
 
 task.wait(2)

@@ -10,6 +10,16 @@ function PlayerService.GetBlockUpgrade(Player: Player): number
     return 1
 end
 
+function PlayerService.GetMaxBlocksHold(Player: Player): number
+    local Amount = Player:GetAttribute("MaxBlocksHold")
+
+    if not Amount then
+        Amount = 6
+    end
+
+    return Amount
+end
+
 function PlayerService.GetTeam(Player: Player): Team
     return Player.Team
 end
