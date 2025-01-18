@@ -19,12 +19,12 @@ type BlockPacketData = {
 local function StartTracking()
     -- TODO find the latest hitbox that is available in the staircase model, and you can only place it there
 	local connection
-	connection = workspace.Bases.Red.StaircaseModel["Hitbox"].Touched:Connect(function(hit: BasePart)--! How about controlling the barrier part on the server so it's moving but it's still tracking the touches
+	connection = workspace.Bases[Scrypt.LocalPlayer.Team.Name].StaircaseModel["Hitbox"].Touched:Connect(function(hit: BasePart)--! How about controlling the barrier part on the server so it's moving but it's still tracking the touches
 		-- Check if part is the local player
         if not (hit:IsDescendantOf(Scrypt.LocalPlayer.Character) or hit.Parent == Scrypt.LocalPlayer.Character) then return end
 
 		Scrypt.ClientNetwork.SendPacket("PlaceBlock", {
-			Reliable = true, Data = "Red"
+			Reliable = true, Data = Scrypt.LocalPlayer.Team.Name
 		})
 
 		connection:Disconnect()
@@ -68,7 +68,5 @@ function BlockControler.HandleBlocks()
         end      
     end)
 end
-
-
 
 return BlockControler

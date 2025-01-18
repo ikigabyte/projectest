@@ -397,7 +397,7 @@ function StairService.StartSpawning(Team: string) -- ! It has to get both teams 
     local TRUE = true
     task.defer(function() -- Might have to change this to spawn
         while TRUE do 
-            print("Spawning in blocks")
+            print("Spawning in blocks for team: " .. Team)
             Studs = CollectionPart.Parent.Upgrades.StudsPerSecond.Value
             CollectionPart:SetAttribute("BlockCount", (CollectionPart:GetAttribute("BlockCount"):: number) + Studs or 1)
 
