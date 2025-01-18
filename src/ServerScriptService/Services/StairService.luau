@@ -166,7 +166,7 @@ local function ProcessBlockPlacementQueue(queueToProcess: string, staircaseModel
             table.sort(sortedBlocks, sortBlocksByName)
             
             -- Give currency reward to player
-            CurrencyService.RewardPlayer(player, blocks)
+            CurrencyService.AddRAMCurrencyToPlayer(player, "Coins", blocks*10)
             
             -- Process blocks up to requested amount
             local processedBlocks = 0

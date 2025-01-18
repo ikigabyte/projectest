@@ -8,6 +8,7 @@ local Teams = game:GetService("Teams")
 local Utilities = Scrypt.GetModule("Utilities")
 local TeamService = Scrypt.GetService("TeamService")
 local StairService = Scrypt.GetService("StairService")
+local CurrencyService = Scrypt.GetService("CurrencyService")
 local RoundEvents
 
 -- Handles all functions for when the character gets added
@@ -36,6 +37,7 @@ end
 -- Handle Player leaving
 local function OnPlayerRemoving(Player: Player)
 	-- Erase player from server
+    CurrencyService.ErasePlayer(Player)
 	
 	-- Handle memory leak
 	repeat
@@ -75,7 +77,6 @@ IntermissionStartedEvent:Connect(function()
 end)
 
 local Cleanup
-
 local EndTime = os.time() + 20
 
 RoundStartedEvent:Connect(function()
