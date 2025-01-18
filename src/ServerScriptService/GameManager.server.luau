@@ -82,7 +82,8 @@ local EndTime = os.time() + 20
 RoundStartedEvent:Connect(function()
     print("ROUND STARTED")
     EndTime = os.time() + 20
-    Cleanup = StairService.StartSpawning()
+    Cleanup = StairService.StartSpawning("Red")
+    Cleanup = StairService.StartSpawning("Blue")
 end)
 
 RoundEndedEvent:Connect(function()

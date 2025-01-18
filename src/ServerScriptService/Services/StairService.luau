@@ -31,6 +31,10 @@ type QueueRequest = {
     Blocks: number
 }
 
+-- Constants
+local STUD_HEIGHT_MULTIPLIER = 1
+local ROTATION_MIN = -15
+local ROTATION_MAX = 15
 local PROCESS_DELAY = 0.2
 local DEFAULT_SORT_VALUE = 0
 
@@ -51,47 +55,57 @@ local function equipSkin(block : Part, skinTexture : Texture)
         Enum.NormalId.Top
     }
 
-    for i = 1, 6, 1 do 
+    for face = 1, 6, 1 do 
         local textureClone = skinTexture:Clone()
         textureClone.Parent = block
-        textureClone.Face = NormalIds[i]
+        textureClone.Face = NormalIds[face]
         textureClone.Name = 'Skin'
     end
 end
 
-local function GetBlocksModel(Player : Player, blockUpgrade : number) : Model --TODO Make sure this can apply skins after the blocks are created
+local function createBasicBlock(TeamColor: Color3, Skin: string): BasePart
+    local block = Assets:FindFirstChild("StudPart"):Clone()
+    block.Anchored = false
+    block.CanCollide = false
+    block.Color = TeamColor
+    
+    if Skin ~= 'Default' then
+        local SkinAsset = Assets.Textures:FindFirstChild(Skin)
+        if SkinAsset then equipSkin(block, SkinAsset) end
+    end
+    
+    return block
+end
+
+local function positionAndWeldBlock(baseBlock: BasePart, newBlock: BasePart, index: number, randomGen: Random)
+    local studHeightY = newBlock.Size.Y
+    newBlock.Position = baseBlock.Position + Vector3.new(0, (studHeightY * index) - studHeightY, 0)
+    
+    local randomYRotation = randomGen:NextInteger(ROTATION_MIN, ROTATION_MAX)
+    newBlock.Orientation += Vector3.new(0, randomYRotation, 0)
+
+    local Weld = Instance.new("WeldConstraint")
+    Weld.Parent = newBlock
+    Weld.Part0 = baseBlock
+    Weld.Part1 = newBlock
+end
+
+local function GetBlocksModel(Player: Player, blockUpgrade: number): Model
     local tempModel = Instance.new("Model")
     local Skin = PlayerService.GetBlockSkin(Player)
-    local baseBlock = nil
+    local TeamColor = TeamColors[Player.Team.Name] or Color3.new(1, 1, 1)
     local RandomGenerator = Random.new()
+    local baseBlock = nil
 
-    for i = 1, blockUpgrade, 1 do
-        local studsClone = Assets:FindFirstChild("StudPart"):Clone()
-        local SkinExists = Assets.Textures:FindFirstChild(Skin)
-        -- assert(SkinExists, "Skin not found")
-        if Skin ~= 'Default' then equipSkin(studsClone, SkinExists) end
-        studsClone.Position = Vector3.new(0,0,0)
-        studsClone.Anchored = false
-        studsClone.CanCollide = false
-        studsClone.Parent = tempModel
-
-        local TeamColor = TeamColors[Player.Team.Name] or Color3.new(1, 1, 1)
-        studsClone.Color = TeamColor
+    for i = 1, blockUpgrade do
+        local block = createBasicBlock(TeamColor, Skin)
+        block.Parent = tempModel
 
         if i == 1 then
-            baseBlock = studsClone
+            baseBlock = block
             tempModel.PrimaryPart = baseBlock
-        elseif i > 1 then -- Changed this to elseif so that it doesn't run two checks
-            local studHeightY = studsClone.Size.Y
-            studsClone.Position = baseBlock.Position + Vector3.new(0, (studHeightY * i) - studHeightY, 0)
-            
-            local randomYRotation = RandomGenerator:NextInteger(-15, 15)
-            studsClone.Orientation = studsClone.Orientation + Vector3.new(0, randomYRotation, 0)
-
-            local Weld = Instance.new("WeldConstraint")
-            Weld.Parent = studsClone
-            Weld.Part0 = baseBlock
-            Weld.Part1 = studsClone
+        else
+            positionAndWeldBlock(baseBlock, block, i, RandomGenerator)
         end
     end
 
@@ -99,7 +113,7 @@ local function GetBlocksModel(Player : Player, blockUpgrade : number) : Model --
 end
 
 -- Process block placement
-local function ProcessBlock(block: Part, player: Player, hitbox: Part, wall: Part): boolean
+local function processBlock(block: Part, player: Player, hitbox: Part, wall: Part): boolean
     if block.Name == "Hitbox" or block.Name == "Wall" or 
        not block:IsA("Part") or 
        block.CanCollide or 
@@ -129,7 +143,7 @@ local function ProcessBlock(block: Part, player: Player, hitbox: Part, wall: Par
 end
 
 -- Processes the queue of block placement requests for a specific team
-local function ProcessBlockPlacementQueue(queueToProcess: string, staircaseModel: Model)
+local function processBlockPlacementQueue(queueToProcess: string, staircaseModel: Model)
     -- Get the queue for the specified team
     local queue = (queueToProcess == "Blue") and BlueQueuePlacement or RedQueuePlacement
     
@@ -171,7 +185,7 @@ local function ProcessBlockPlacementQueue(queueToProcess: string, staircaseModel
             -- Process blocks up to requested amount
             local processedBlocks = 0
             for _, block in ipairs(sortedBlocks) do
-                if ProcessBlock(block, player, hitbox, wall) then
+                if processBlock(block, player, hitbox, wall) then
                     processedBlocks += 1
                     if processedBlocks >= blocks then break end
                 end
@@ -192,6 +206,107 @@ local function ProcessBlockPlacementQueue(queueToProcess: string, staircaseModel
         -- Mark queue as no longer processing
         queue.Processing = false
     end)
+end
+
+-- Helper function to validate the character of a player
+local function validateCharacter(Player: Player): boolean
+    local Character = Player.Character
+    if not Character then
+        warn("Character not found for player: " .. Player.Name)
+        return false
+    end
+
+    local LeftHand = Character.LeftHand
+    assert(LeftHand, "LeftHand not found.")
+
+    local LeftGripAttachment: Attachment = LeftHand:FindFirstChild("LeftGripAttachment")
+    assert(LeftGripAttachment, "LeftGripAttachment part not found.")
+
+    local UpperTorso = Character:FindFirstChild("UpperTorso")
+    assert(UpperTorso, "UpperTorso not found.")
+
+    return true
+end
+
+-- Calculate how many blocks to give the player
+local function getMaxBlocks(Player: Player, CollectionPart: BasePart)
+    local TotalAvailableBlocks = CollectionPart:GetAttribute("BlockCount") or 0
+    local BlocksUpgrade = PlayerService.GetMaxBlocksHold(Player) or 1
+    local BlocksToGive = math.min(BlocksUpgrade, TotalAvailableBlocks)
+
+    return BlocksToGive
+end
+
+local function createBlockTool(Character: Model, Player: Player, BlocksToGive: number): Tool
+    -- Create tool
+    local BlockTool = Instance.new("Tool")
+    BlockTool.Name = "BlockTool"
+    BlockTool.Parent = Character
+    BlockTool.RequiresHandle = false
+    
+    local meshModel = GetBlocksModel(Player, BlocksToGive)
+    meshModel.Parent = BlockTool
+    BlockTool:SetAttribute('BlocksHeld', BlocksToGive)
+    
+    -- Calculate the offset position (2 studs in front, 2 studs up)
+    local BodyFrontAttachment = Character.UpperTorso:FindFirstChild("BodyFrontAttachment")
+    local offset = CFrame.new(0, 0, -2) -- Adjusts for the relative position
+    meshModel:PivotTo(BodyFrontAttachment.WorldCFrame * offset)
+    
+    local Weld = Instance.new("WeldConstraint")
+    Weld.Part0 = meshModel.PrimaryPart
+    Weld.Part1 = BodyFrontAttachment.Parent -- Attach to the UpperTorso
+    Weld.Parent = meshModel.PrimaryPart
+
+    return BlockTool
+end
+
+-- Handles block placement from the client
+local function onBlockCreated(CollectionPart: BasePart): RBXScriptConnection
+    local Connection: RBXScriptConnection
+    Connection = Scrypt.ServerNetwork.ListenForPacket("PlaceBlock", true, function(Player, Data)
+        local Team = tostring(Player.Team)
+        local StaircaseModel = TeamService.GetBaseChild(Team, "StaircaseModel")
+        local Character = Player.Character
+        assert(validateCharacter(Player), "Character validation failed.")
+    
+        local BlockTool = Character:FindFirstChild("BlockTool")
+        if not BlockTool then return end
+
+        local BlocksHeld = BlockTool:GetAttribute("BlocksHeld")
+        if BlocksHeld == 0 then return end
+
+        -- Get correct queue based on team
+        local Queue = if Team == "Red" then RedQueuePlacement else BlueQueuePlacement
+        local PlacementData = {
+            Blocks = BlocksHeld,
+            Player = Player,
+        }
+
+        BlockTool:SetAttribute("BlocksHeld", 0)
+        Queue.Requests:push(PlacementData)
+        processBlockPlacementQueue(if Team == "Red" then "Red" else "Blue", StaircaseModel)
+        BlockTool:Destroy()
+    end)
+
+    return Connection
+end
+
+-- Setup the team zone
+local function setupTeamZone(CollectionPart: BasePart): RBXScriptConnection
+    -- Spawn in Blocks
+    local TeamZone = Zone.fromRegion(CollectionPart.CFrame, Vector3.new(15, 15, 15))
+    local Connection
+    Connection = TeamZone.playerEntered:Connect(
+        function(player: Player) -- Calculate how many the player needs to grab and how many are in the base
+            -- print("Player entered the zone")
+            if CollectionPart:GetAttribute("BlockCount") == 0 then return end
+            StairService.PickupBlocks(player, CollectionPart)
+            -- print("Now giving player a block to do something here with")
+        end
+    )
+
+    return Connection
 end
 
 -- Resets a staircase for a team
@@ -218,137 +333,45 @@ function StairService.ResetStairs(Team: string)
     ))
 end
 
--- Helper function to validate the character of a player
-local function ValidateCharacter(Player: Player): boolean
-    local Character = Player.Character
-    if not Character then
-        warn("Character not found for player: " .. Player.Name)
-        return false
-    end
-
-    local LeftHand = Character.LeftHand
-    assert(LeftHand, "LeftHand not found.")
-
-    local LeftGripAttachment: Attachment = LeftHand:FindFirstChild("LeftGripAttachment")
-    assert(LeftGripAttachment, "LeftGripAttachment part not found.")
-
-    local UpperTorso = Character:FindFirstChild("UpperTorso")
-    assert(UpperTorso, "UpperTorso not found.")
-
-    return true
-end
-
--- Calculate how many blocks to give the player
-local function GetMaxBlocks(Player: Player, CollectionPart: BasePart)
-    local TotalAvailableBlocks = CollectionPart:GetAttribute("BlockCount") or 0
-    local BlocksUpgrade = PlayerService.GetMaxBlocksHold(Player) or 1
-    local BlocksToGive = math.min(BlocksUpgrade, TotalAvailableBlocks)
-
-    return BlocksToGive
-end
-
-local function CreateBlockTool(Character: Model, Player: Player, BlocksToGive: number): Tool
-    -- Create tool
-    local BlockTool = Instance.new("Tool")
-    BlockTool.Name = "BlockTool"
-    BlockTool.Parent = Character
-    BlockTool.RequiresHandle = false
-    
-    local meshModel = GetBlocksModel(Player, BlocksToGive)
-    meshModel.Parent = BlockTool
-    BlockTool:SetAttribute('BlocksHeld', BlocksToGive)
-    
-    -- Calculate the offset position (2 studs in front, 2 studs up)
-    local BodyFrontAttachment = Character.UpperTorso:FindFirstChild("BodyFrontAttachment")
-    local offset = CFrame.new(0, 0, -2) -- Adjusts for the relative position
-    meshModel:PivotTo(BodyFrontAttachment.WorldCFrame * offset)
-    
-    local Weld = Instance.new("WeldConstraint")
-    Weld.Part0 = meshModel.PrimaryPart
-    Weld.Part1 = BodyFrontAttachment.Parent -- Attach to the UpperTorso
-    Weld.Parent = meshModel.PrimaryPart
-
-    return BlockTool
-end
-
 function StairService.PickupBlocks(Player: Player, CollectionPart: Part) 
     local Character = Player.Character
-    assert(ValidateCharacter(Player), "Character validation failed.")
+    assert(validateCharacter(Player), "Character validation failed.")
     
-    local BlocksToGive = GetMaxBlocks(Player, CollectionPart)
+    local BlocksToGive = getMaxBlocks(Player, CollectionPart)
     if Character:FindFirstChild("BlockTool") then 
         return
     else
         -- Create tool
-        CreateBlockTool(Character, Player, BlocksToGive)
+        createBlockTool(Character, Player, BlocksToGive)
     end
     
     Scrypt.ServerNetwork.SendPacketToClient("BlockTool", {Address = Player, Data = {Status = true}, Reliable = true})
     CollectionPart:SetAttribute("BlockCount", CollectionPart:GetAttribute("BlockCount") - BlocksToGive)
     --TODO ABILITY TO CREATE A STACK OF BLOCKS before giving to the player and then setting a primary part cframe here as well
 end
-    
-local function OnBlockCreated(CollectionPart: BasePart): RBXScriptConnection
-    local Connection: RBXScriptConnection
-    Connection = Scrypt.ServerNetwork.ListenForPacket("PlaceBlock", true, function(Player, Data)
-        local Team = tostring(Player.Team)
-        local StaircaseModel = TeamService.GetBaseChild(Team, "StaircaseModel")
-        local Character = Player.Character
-        assert(ValidateCharacter(Player), "Character validation failed.")
-    
-        local BlockTool = Character:FindFirstChild("BlockTool")
-       assert(BlockTool, "BlockTool not found.")
 
-        local BlocksHeld = BlockTool:GetAttribute("BlocksHeld")
-        if BlocksHeld == 0 then return end
-
-        -- Get correct queue based on team
-        local Queue = if Team == "Red" then RedQueuePlacement else BlueQueuePlacement
-        local PlacementData = {
-            Blocks = BlocksHeld,
-            Player = Player,
-        }
-
-        BlockTool:SetAttribute("BlocksHeld", 0)
-        Queue.Requests:push(PlacementData)
-        ProcessBlockPlacementQueue(if Team == "Red" then "Red" else "Blue", StaircaseModel)
-        BlockTool:Destroy()
-    end)
-
-    return Connection
-end
-
-local function SetupTeamZone(CollectionPart: BasePart): RBXScriptConnection
-    -- Spawn in Blocks
-    local TeamZone = Zone.fromRegion(CollectionPart.CFrame, Vector3.new(15, 15, 15))
-    local Connection
-    Connection = TeamZone.playerEntered:Connect(
-        function(player: Player) -- Calculate how many the player needs to grab and how many are in the base
-            -- print("Player entered the zone")
-            if CollectionPart:GetAttribute("BlockCount") == 0 then return end
-            StairService.PickupBlocks(player, CollectionPart)
-            -- print("Now giving player a block to do something here with")
-        end
-    )
-
-    return Connection
-end
-
-function StairService.StartSpawning() -- ! It has to get both teams and start spawning the blocks in each respective zone
-	local CollectionPart: Part = TeamService.GetBaseChild("Red", "CollectionPart"):: Part
-    CollectionPart:SetAttribute("BlockCount", 0)
-
-    local Connection = OnBlockCreated(CollectionPart)
-    local Connection2 = SetupTeamZone(CollectionPart)
-    local Connection3
-    
-    local Studs = CollectionPart.Parent.Upgrades.StudsPerSecond.Value
+-- Create and place the studs pack / pile
+local function CreateStudsPack(CollectionPart: BasePart)
+    if CollectionPart.Parent:FindFirstChild("SmallStudPack") then return end
     local SmallStudPack = Assets.SmallStudPack
-    SmallStudPack = SmallStudPack:Clone() -- FIXED A BUG HERE
-    SmallStudPack.Parent = CollectionPart.Parent.Parent
+    SmallStudPack = SmallStudPack:Clone()
+    SmallStudPack.Parent = CollectionPart.Parent
 
     local CollectionCFrame = CFrame.new(CollectionPart.Position + Vector3.new(0,2,0))
     SmallStudPack:PivotTo(CollectionCFrame)
+end
+
+-- Start spawning blocks
+function StairService.StartSpawning(Team: string) -- ! It has to get both teams and start spawning the blocks in each respective zone
+	local CollectionPart: Part = TeamService.GetBaseChild(Team, "CollectionPart"):: Part
+    CollectionPart:SetAttribute("BlockCount", 0)
+
+    local Connection = onBlockCreated(CollectionPart)
+    local Connection2 = setupTeamZone(CollectionPart)
+    local Connection3
+
+    local Studs = CollectionPart.Parent.Upgrades.StudsPerSecond.Value
+    CreateStudsPack(CollectionPart)
     
     Connection3 = CollectionPart:GetAttributeChangedSignal("BlockCount"):Connect(function()
         CollectionPart.Info.Frame.Title.Text = CollectionPart:GetAttribute("BlockCount")

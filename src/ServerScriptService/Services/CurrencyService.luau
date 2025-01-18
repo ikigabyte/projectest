@@ -1,5 +1,4 @@
 --!strict
-local Players = game:GetService("Players")
 local Scrypt = require(game:GetService("ReplicatedStorage").Scrypt)
 Scrypt.Init()
 
@@ -110,6 +109,18 @@ function CurrencyService.RemoveRAMCurrencyFromPlayer(Player: Player, CurrencyNam
     end
 
     CurrencyType[Player] -= Amount
+end
+
+-- Sets memory currency for player
+function CurrencyService.SetRAMCurrencyForPlayer(Player: Player, CurrencyName: string, Amount: number)
+    local CurrencyType = InMemoryCurrencies[CurrencyName]
+    assert(CurrencyType, "Currency does not exist!")
+
+    if not CurrencyType[Player] then
+        AddPlayerToRAMCurrencyType(Player, CurrencyName)
+    end
+
+    CurrencyType[Player] = Amount
 end
 
 -- Handles purchases with memory currencies
