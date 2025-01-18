@@ -9,6 +9,7 @@ local Utilities = Scrypt.GetModule("Utilities")
 local TeamService = Scrypt.GetService("TeamService")
 local StairService = Scrypt.GetService("StairService")
 local CurrencyService = Scrypt.GetService("CurrencyService")
+local GameConfig = Scrypt.GetModule("GameConfig")
 local RoundEvents
 
 -- Handles all functions for when the character gets added
@@ -77,11 +78,11 @@ IntermissionStartedEvent:Connect(function()
 end)
 
 local Cleanup
-local EndTime = os.time() + 120
+local EndTime = os.time() + GameConfig.RoundTime 
 
 RoundStartedEvent:Connect(function()
     print("ROUND STARTED")
-    EndTime = os.time() + 120
+    EndTime = os.time() + GameConfig.RoundTime
     Cleanup = StairService.StartSpawning("Red")
     Cleanup = StairService.StartSpawning("Blue")
 end)

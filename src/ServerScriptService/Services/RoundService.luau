@@ -10,6 +10,7 @@ local Players = Scrypt.Services.Players
 local TeamService = Scrypt.GetService("TeamService")
 local PlayerService = Scrypt.GetService("PlayerService")
 local StairService = Scrypt.GetService("StairService")
+local GameConfig = Scrypt.GetModule("GameConfig")
 
 type RulesType = {
     IntermissionTime: number,
@@ -21,7 +22,7 @@ type RulesType = {
 local RULES: RulesType = {
     IntermissionTime = 2,
     SpawnTime = 5,
-    RoundTime = 120,
+    RoundTime = GameConfig.RoundTime,
     PlayersNeeded = 1,
 }
 

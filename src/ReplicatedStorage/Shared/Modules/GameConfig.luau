@@ -14,6 +14,7 @@ local Config = {
     BaseStudsPerSecond = 1,
     CoinsPerBlock = 1,
     TotalStairs = 80,
+    RoundTime = 10,
 }
 
 return Config
