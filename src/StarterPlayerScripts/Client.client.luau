@@ -9,8 +9,8 @@ local GameConfig = Scrypt.GetModule("GameConfig")
 local BlockController = Scrypt.GetController("BlockController")
 local UIController = Scrypt.GetController("UIController")
 
-BlockController.HandleBlocks();
-UIController.SetupTopBarFeatures();
+BlockController.HandleBlocks()
+UIController.SetupTopBarFeatures()
 
 -- Counts the number of valid stairs in a team's staircase
 local function CountTeamProgress(team: string)
