@@ -14,7 +14,8 @@ local RoundEvents
 
 -- Handles all functions for when the character gets added
 local function CharacterAdded(Character: Model, Player: Player) 
-    
+    local FilterCollisions = Scrypt.GetModule("FilterPlayerCollisions")
+    FilterCollisions(Character)
 end
 
 local function OnPlayerAdded(Player: Player)
