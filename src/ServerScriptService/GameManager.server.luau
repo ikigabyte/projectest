@@ -11,8 +11,8 @@ local StairService = Scrypt.GetService("StairService")
 local RoundEvents
 
 -- Handles all functions for when the character gets added
-local function CharacterAdded(Character: Model, Player: Player)
-	-- print("Character added")
+local function CharacterAdded(Character: Model, Player: Player) 
+    
 end
 
 local function OnPlayerAdded(Player: Player)
@@ -76,15 +76,12 @@ end)
 
 local Cleanup
 
-local EndTime = os.time() + 10
+local EndTime = os.time() + 20
 
 RoundStartedEvent:Connect(function()
     print("ROUND STARTED")
-    EndTime = os.time() + 10
+    EndTime = os.time() + 20
     Cleanup = StairService.StartSpawning()
-    for i, player: Player in ipairs(Scrypt.Services.Players:GetPlayers()) do
-        -- StairService.HandleBlock(player)
-    end
 end)
 
 RoundEndedEvent:Connect(function()
@@ -118,11 +115,6 @@ end)
 while true do
 	task.wait(1)
     if EndTime then
-        print('Updating time, gonna find a different way to do this')
-        -- Scrypt.ServerNetwork.PingAllClients('UpdateRoundTime', false)
-        
-        -- Scrypt.ServerNetwork.SendPacketToAllClients()
-        -- Scrypt.ServerNetwork.SendPacketToAllClients("UpdateRoundTime", EndTime - os.time(), false)
-        -- Scrypt.ServerNetwork.SendPacketToAllClients("UpdateRoundTime", EndTime - os.time())
+        Scrypt.ServerNetwork.SendPacketToAllClients("UpdateRoundTime", EndTime - os.time(), true)
     end
 end

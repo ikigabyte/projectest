@@ -21,7 +21,7 @@ type RulesType = {
 local RULES: RulesType = {
     IntermissionTime = 2,
     SpawnTime = 5,
-    RoundTime = 100,
+    RoundTime = 20,
     PlayersNeeded = 1,
 }
 
@@ -32,21 +32,20 @@ type InitResult = {
     RoundEnded: Scrypt.Signal,
 }
 
--- Renamed and fixed type
-local RoundThread: thread
 
 local IntermissionStartedEvent = Scrypt.CreateSignal("IntermissionStarted") 
 local IntermissionEndedEvent = Scrypt.CreateSignal("IntermissionEnded")
 local RoundStartedEvent = Scrypt.CreateSignal("RoundStarted")
 local RoundEndedEvent = Scrypt.CreateSignal("RoundEndedConnection")
 
--- 1. Intermission Function
 function RoundService.Intermission(Duration: number)
-    assert(Duration, "Duration not provided.") -- Added assert to check if Duration is provided
+    assert(Duration, "Duration not provided.")
     print(`Intermission started. Waiting for {tostring(Duration)} seconds...`)
+
     IntermissionStartedEvent:Fire()
     for i = Duration, 1, -1 do
-        Scrypt.ServerNetwork.SendPacketToAllClients("UpdateRoundTime",i, false)
+        Scrypt.ServerNetwork.SendPacketToAllClients("UpdateRoundTime",i, true)
+
         task.wait(1)
     end
 
@@ -56,9 +55,8 @@ end
 function RoundService.StartRound()
     RoundStartedEvent:Fire()
     task.wait(RULES.RoundTime)
-	RoundThread = task.defer(function()
-        RoundEndedEvent:Fire()
-	end)
+    
+    RoundEndedEvent:Fire()
 end
 
 local function TeleportPlayer(player: Player, TeamsLocation: Instance)
@@ -85,7 +83,6 @@ local function TeleportPlayer(player: Player, TeamsLocation: Instance)
     character:PivotTo(teamSpawn.CFrame*CFrame.new(0, 3, 0))
 end
 
--- 3. Teleport to Spawn Points Function
 function RoundService.TeleportPlayers(TeamsLocation: Instance)
     assert(TeamsLocation, "Teams folder not provided.")
 
@@ -101,14 +98,11 @@ local function LoopRounds()
             TeamService.FillTeamsEvenly(unpack(game:GetService("Teams"):GetChildren()))
             RoundService.TeleportPlayers(workspace:FindFirstChild("Bases"):: Instance)
             RoundService.StartRound()
-            print("Round started.")
-            continue -- EDIT: Removed else in favor of continue        
+            continue   
         end
 
-        -- EDIT: This used to be in an else statement, but I moved it out of the else statement to keep indentations minimal
         task.wait(2)
         
-        -- EDIT: Fixed function usage (although I should change the usage to fit what you had before since it's more consistent) 
         Scrypt.ServerNetwork.SendPacketToAllClients("PlayersNeeded", "Not enough players to start the game.", true)
     end
 end

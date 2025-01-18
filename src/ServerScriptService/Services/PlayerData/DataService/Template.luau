@@ -1,0 +1,5 @@
+local DataTemplate = {
+
+}
+
+return DataTemplate

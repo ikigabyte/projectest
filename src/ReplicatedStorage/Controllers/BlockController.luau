@@ -23,7 +23,7 @@ local function StartTracking()
 		-- Check if part is the local player
         if not (hit:IsDescendantOf(Scrypt.LocalPlayer.Character) or hit.Parent == Scrypt.LocalPlayer.Character) then return end
 
-		Scrypt.ClientNetwork.SendPacket("Blocktest", {
+		Scrypt.ClientNetwork.SendPacket("PlaceBlock", {
 			Reliable = true, Data = "Red"
 		})
 
