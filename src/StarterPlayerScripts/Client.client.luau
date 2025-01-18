@@ -6,7 +6,7 @@ local ReplicatedStorage: ReplicatedStorage = Scrypt.Services.ReplicatedStorage
 local TweenModule = Scrypt.GetModule("TweenService2")
 local GameConfig = Scrypt.GetModule("GameConfig")
 
-local BlockController= Scrypt.GetController("BlockController")
+local BlockController = Scrypt.GetController("BlockController")
 local UIController = Scrypt.GetController("UIController")
 
 BlockController.HandleBlocks();

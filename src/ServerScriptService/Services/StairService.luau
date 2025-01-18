@@ -340,8 +340,10 @@ function StairService.PickupBlocks(Player: Player, CollectionPart: Part)
     assert(validateCharacter(Player), "Character validation failed.")
     
     local BlocksToGive = getMaxBlocks(Player, CollectionPart)
-    if Character:FindFirstChild("BlockTool") then 
-        return
+    if Character:FindFirstChild("BlockTool") then
+        local Blocks = Character.BlockTool:GetAttribute("BlocksHeld") + BlocksToGive
+        Character.BlockTool:Destroy()
+        createBlockTool(Character, Player, Blocks)
     else
         -- Create tool
         createBlockTool(Character, Player, BlocksToGive)
@@ -400,8 +402,6 @@ function StairService.StartSpawning(Team: string) -- ! It has to get both teams 
  end
 
  return StairService
-
-
 
  --! Temporarily disabled this, finding another way to track each clients placement
  -- function StairService.HandleStaircase()
