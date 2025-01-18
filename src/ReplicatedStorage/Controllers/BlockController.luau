@@ -22,6 +22,11 @@ local function StartTracking()
     connection = workspace.Bases[Scrypt.LocalPlayer.Team.Name].StaircaseModel["Hitbox"].Touched:Connect(function(hit: BasePart)
         -- Skip if the touched part isn't from the local player
         if not (hit:IsDescendantOf(Scrypt.LocalPlayer.Character) or hit.Parent == Scrypt.LocalPlayer.Character) then return end
+		
+        if not Scrypt.LocalPlayer.Character:FindFirstChild("BlockTool") then
+            connection:Disconnect()
+            return
+        end
 
         -- Send packet to place block when player touches hitbox
         Scrypt.ClientNetwork.SendPacket("PlaceBlock", {

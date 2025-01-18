@@ -78,14 +78,14 @@ IntermissionStartedEvent:Connect(function()
     end
 end)
 
-local Cleanup
+local CleanupRed, CleanupBlue
 local EndTime = os.time() + GameConfig.RoundTime 
 
 RoundStartedEvent:Connect(function()
     print("ROUND STARTED")
     EndTime = os.time() + GameConfig.RoundTime
-    Cleanup = StairService.StartSpawning("Red")
-    Cleanup = StairService.StartSpawning("Blue")
+    CleanupRed = StairService.StartSpawning("Red")
+    CleanupBlue = StairService.StartSpawning("Blue")
 end)
 
 RoundEndedEvent:Connect(function()
@@ -93,13 +93,19 @@ RoundEndedEvent:Connect(function()
     EndTime = nil
     StairService.ResetStairs("Red")
     StairService.ResetStairs("Blue")
+    CleanupRed()
+    CleanupBlue()
     Scrypt.ServerNetwork.PingAllClients("UpdateProgressBar", true)
 
     for i, player: Player in ipairs(Scrypt.Services.Players:GetPlayers()) do
        player.Backpack:ClearAllChildren()
+       if player.Character then
+            local Tool = player.Character:FindFirstChild("BlockTool")
+            if not Tool then continue end
+            Tool:Destroy()
+        end
     end
     
-    Cleanup()
 end)
 
 game:BindToClose(function()

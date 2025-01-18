@@ -93,7 +93,8 @@ end
 local function GetBlocksModel(Player: Player, blockUpgrade: number): Model
     local tempModel = Instance.new("Model")
     local Skin = PlayerService.GetBlockSkin(Player)
-    local TeamColor = TeamColors[Player.Team.Name] or Color3.new(1, 1, 1)
+    local TeamColor = TeamColors[tostring(Player.Team)]
+    print(TeamColor)
     local RandomGenerator = Random.new()
     local baseBlock = nil
 
@@ -327,6 +328,7 @@ end
 -- Resets a staircase for a team
 function StairService.ResetStairs(Team: string)
     local StaircaseModel = TeamService.GetBaseChild(Team, "StaircaseModel")
+    local CollectionPart = TeamService.GetBaseChild(Team, "CollectionPart")
     local children = StaircaseModel:GetChildren()
 
     for _, child: BasePart in ipairs(children) do
@@ -335,6 +337,7 @@ function StairService.ResetStairs(Team: string)
         child.Transparency = 1
     end
 
+    CollectionPart:SetAttribute("BlockCount", 0)
     local Hitbox = StaircaseModel:FindFirstChild("Hitbox")
     local Wall = StaircaseModel:FindFirstChild("Wall")
 
@@ -382,7 +385,7 @@ end
 function StairService.StartSpawning(Team: string) -- ! It has to get both teams and start spawning the blocks in each respective zone
 	local CollectionPart: Part = TeamService.GetBaseChild(Team, "CollectionPart"):: Part
     CollectionPart:SetAttribute("BlockCount", 0)
-
+    CollectionPart:SetAttribute("IsRunning", true)
     local Connection = onBlockCreated(CollectionPart)
     local Connection2 = setupTeamZone(CollectionPart)
     local Connection3
@@ -394,9 +397,10 @@ function StairService.StartSpawning(Team: string) -- ! It has to get both teams 
         CollectionPart.Info.Frame.Title.Text = CollectionPart:GetAttribute("BlockCount")
     end)
     
-    local TRUE = true
+    
     task.defer(function() -- Might have to change this to spawn
-        while TRUE do 
+        while CollectionPart:GetAttribute("IsRunning") do
+            print(CollectionPart:GetAttribute("IsRunning"))
             Studs = CollectionPart.Parent.Upgrades.StudsPerSecond.Value
             CollectionPart:SetAttribute("BlockCount", (CollectionPart:GetAttribute("BlockCount"):: number) + Studs or 1)
 
@@ -406,7 +410,10 @@ function StairService.StartSpawning(Team: string) -- ! It has to get both teams 
 
     return function()
         -- Cleanup
-        TRUE = false
+        print("CLEANUP")
+        CollectionPart:SetAttribute("IsRunning", false)
+        CollectionPart:SetAttribute("BlockCount", 0)
+        CollectionPart.Info.Frame.Title.Text = CollectionPart:GetAttribute("BlockCount")
         Connection:Disconnect()
         Connection2:Disconnect()
         Connection3:Disconnect()
