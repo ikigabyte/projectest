@@ -77,11 +77,11 @@ IntermissionStartedEvent:Connect(function()
 end)
 
 local Cleanup
-local EndTime = os.time() + 20
+local EndTime = os.time() + 120
 
 RoundStartedEvent:Connect(function()
     print("ROUND STARTED")
-    EndTime = os.time() + 20
+    EndTime = os.time() + 120
     Cleanup = StairService.StartSpawning("Red")
     Cleanup = StairService.StartSpawning("Blue")
 end)
@@ -91,6 +91,7 @@ RoundEndedEvent:Connect(function()
     EndTime = nil
     StairService.ResetStairs("Red")
     StairService.ResetStairs("Blue")
+    Scrypt.ServerNetwork.PingAllClients("UpdateProgressBar", true)
 
     for i, player: Player in ipairs(Scrypt.Services.Players:GetPlayers()) do
        player.Backpack:ClearAllChildren()

@@ -287,6 +287,8 @@ local function onBlockCreated(CollectionPart: BasePart): RBXScriptConnection
         Queue.Requests:push(PlacementData)
         processBlockPlacementQueue(if Team == "Red" then "Red" else "Blue", StaircaseModel)
         BlockTool:Destroy()
+
+        Scrypt.ServerNetwork.PingAllClients("UpdateProgressBar", true)
     end)
 
     return Connection
@@ -379,14 +381,12 @@ function StairService.StartSpawning(Team: string) -- ! It has to get both teams 
     
     local TRUE = true
     task.defer(function() -- Might have to change this to spawn
-        task.wait(1)
-
         while TRUE do 
             print("Spawning in blocks")
             Studs = CollectionPart.Parent.Upgrades.StudsPerSecond.Value
             CollectionPart:SetAttribute("BlockCount", (CollectionPart:GetAttribute("BlockCount"):: number) + Studs or 1)
 
-            task.wait(5)
+            task.wait(2)
         end
     end)
 

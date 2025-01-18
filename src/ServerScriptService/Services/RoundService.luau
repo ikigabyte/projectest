@@ -21,7 +21,7 @@ type RulesType = {
 local RULES: RulesType = {
     IntermissionTime = 2,
     SpawnTime = 5,
-    RoundTime = 20,
+    RoundTime = 120,
     PlayersNeeded = 1,
 }
 

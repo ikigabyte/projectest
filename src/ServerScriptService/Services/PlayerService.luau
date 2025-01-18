@@ -36,7 +36,7 @@ function PlayerService.GetMaxBlocksHold(Player: Player): number
     local Amount = Player:GetAttribute("MaxBlocksHold")
 
     if not Amount then
-        Amount = 2
+        Amount = 10
     end
 
     return Amount
