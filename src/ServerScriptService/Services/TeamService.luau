@@ -55,8 +55,7 @@ local function GetLowestTeam(...: Team): Team?
         return nil
     end
 
-    return Teams.Red --! Disable this after 
-    -- return LowestTeam
+    return LowestTeam
 end
 
 -- General function to create teams

@@ -142,6 +142,13 @@ local function processBlock(block: Part, player: Player, hitbox: Part, wall: Par
     return true
 end
 
+local function GemChance(): boolean
+    local Random = Random.new(os.clock()*10000)
+    local Chance = Random:NextInteger(0, 10)
+    
+    return Chance <= 1
+end
+
 -- Processes the queue of block placement requests for a specific team
 local function processBlockPlacementQueue(queueToProcess: string, staircaseModel: Model)
     -- Get the queue for the specified team
@@ -187,6 +194,12 @@ local function processBlockPlacementQueue(queueToProcess: string, staircaseModel
             for _, block in ipairs(sortedBlocks) do
                 if processBlock(block, player, hitbox, wall) then
                     processedBlocks += 1
+
+                    if GemChance() then
+                        print("YOU GOT A GEM")
+                        CurrencyService.AddCurrency(player, "Gems", 1)
+                    end
+
                     if processedBlocks >= blocks then break end
                 end
             end
