@@ -7,6 +7,7 @@ Scrypt.Init()
 local TweenService : TweenService = Scrypt.Services.TweenService
 local UIController = {}
 local AudioController = Scrypt.GetController("AudioController")
+local MouseHoverController = Scrypt.GetController("MouseController")
 local PlayerSettings = {
     SFX = true,
 	MUSIC = true,
@@ -23,9 +24,48 @@ local function OnButtonClick(icon)
     icon:setImage(status and muteMusic or music)
 end
 
-
-local function StartPlayingMusic(music)
+local function TurnOffAllFrames()
     
+    
+end
+
+local function TurnOnRespectiveFrame(frameName : string)
+    local GUI = Scrypt.GUI[frameName]
+    assert(GUI, "Frame not found, skip")
+    if GUI then
+        GUI.Visible = true
+        print("turning on this thing here")
+    end 
+
+end
+
+local function onMouseEnter(buttonUI : ImageButton)
+    local Props = {
+        Rotation = 15,
+        Size = UDim2.fromScale(.9,.9)
+    }
+    local Tween = TweenService:Create(buttonUI.Icon, TweenInfo.new(0.1, Enum.EasingStyle.Elastic, Enum.EasingDirection.Out), Props)
+    buttonUI.Icon.UIGradient.Enabled = true
+    buttonUI.Title.Visible = true
+    Tween:Play()
+    local CleanupFunction : RBXScriptConnection
+    CleanupFunction = function()
+        print("this has activated here")
+        buttonUI.Icon.UIGradient.Enabled = false
+        buttonUI.Title.Visible = false
+        if Tween.PlaybackState == Enum.PlaybackState.Playing then
+            Tween:Cancel()
+        end
+        buttonUI.Icon.Size = UDim2.fromScale(.8,.8)
+        buttonUI.Icon.Rotation = 0
+    end
+    return CleanupFunction
+
+    --! Return here the stuff here
+end
+local function StartPlayingMusic(music)
+    AudioController.PlaySound(music, .5, 0, .5)
+    -- AudioController.LoopSound(music, .5)
     
 end
 
@@ -67,6 +107,8 @@ local function HandleMainSong(muteMusicIcon)
         AnimateTopBarLabelText(muteMusicIcon, Text)
     end)
 end
+
+
 
 UIController.SpawnRandomCoins = function(numberOfIcons, iconOfCurrency: ImageLabel, framePositionAndCapture: Frame, finalPosition: UDim2)
     for i = 1, numberOfIcons do
@@ -110,6 +152,27 @@ end
 UIController.UpdateTimerLabel = function(number)
     Scrypt.GUI.GameGui.ProgressFrame.Timer.TimerLabel.Text = number
 end
+
+
+
+function UIController.SetupHoverAnimation(Button : ImageButton)
+    local MouseEnter, MouseLeave = MouseHoverController.MouseEnterLeaveEvent(Button)
+    local FrameName = Button:GetAttribute("FrameName") or Button.Name
+    -- TurnOnRespectiveFrame(FrameName) //! Temporarily disabled for now until the uis are in place
+    local CleanupFunction
+    MouseEnter:Connect(function()
+        CleanupFunction = onMouseEnter(Button)
+    end)
+    MouseLeave:Connect(function()
+        -- print("Mouse Left")
+        if CleanupFunction ~= nil then
+            CleanupFunction()    
+        end
+    end)
+end
+
+
+
 
 UIController.SetupTopBarFeatures = function()
     local TopbarPlus = require(Scrypt.Services.ReplicatedStorage:FindFirstChild("TopbarPlus"):FindFirstChild("Icon"))

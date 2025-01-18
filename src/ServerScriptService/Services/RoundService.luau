@@ -20,7 +20,7 @@ type RulesType = {
 }
 
 local RULES: RulesType = {
-    IntermissionTime = 2,
+    IntermissionTime = 10,
     SpawnTime = 5,
     RoundTime = GameConfig.RoundTime,
     PlayersNeeded = 1,

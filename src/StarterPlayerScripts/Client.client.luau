@@ -96,9 +96,14 @@ Scrypt.ClientNetwork.ListenForPacket("StairProcess", true, function(packetData)
 	
 end)
 
+
+
 Scrypt.ClientNetwork.ListenForPacket("CurrencyUpdate", true, function(packetData)
 	Scrypt.GUI.GameGui.Cash.Amount.Text = tostring(packetData)
 end)
+
+
+
 
 -- function to convert seconds into a time format (TODO MOVE TO SEPARATE SCRIPT)
 local function secondsToTime(seconds: number): string
@@ -112,3 +117,8 @@ Scrypt.ClientNetwork.ListenForPacket("UpdateRoundTime", true, function(packetDat
 end)
 
 Scrypt.ClientNetwork.ListenForPacket("UpdateProgressBar", true, UpdateProgressBar)
+
+
+UIController.SetupHoverAnimation(Scrypt.GUI.MainGui.Buttons.Skins)
+UIController.SetupHoverAnimation(Scrypt.GUI.MainGui.Buttons.Shop)
+UIController.SetupHoverAnimation(Scrypt.GUI.MainGui.Buttons.SwitchTeams)
