@@ -101,14 +101,18 @@ Scrypt.ClientNetwork.ListenForPacket("CurrencyUpdate", true, function(packetData
 end)
 
 -- function to convert seconds into a time format (TODO MOVE TO SEPARATE SCRIPT)
-local function secondsToTime(seconds: number): string
-	local minutes = math.floor(seconds / 60)
-	local seconds = seconds % 60
-	return string.format("%02d:%02d", minutes, seconds)
+local function FormatToMinutes(Seconds: number): string
+	assert(Seconds and typeof(Seconds) == "number", "'Seconds' is not valid")
+	
+	local Minutes = math.floor((Seconds % 3600) / 60)
+	local RemainingSeconds = Seconds % 60
+
+	return string.format("%02d:%02d", Minutes, RemainingSeconds)
 end
 
+
 Scrypt.ClientNetwork.ListenForPacket("UpdateRoundTime", true, function(packetData)
-	Scrypt.GUI.GameGui.ProgressFrame.Timer.TimerLabel.Text = secondsToTime(packetData)
+	Scrypt.GUI.GameGui.ProgressFrame.Timer.TimerLabel.Text = FormatToMinutes(packetData)
 end)
 
 Scrypt.ClientNetwork.ListenForPacket("UpdateProgressBar", true, UpdateProgressBar)
