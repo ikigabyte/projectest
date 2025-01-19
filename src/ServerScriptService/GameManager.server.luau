@@ -1,4 +1,5 @@
 
+local Players = game:GetService("Players")
 local Scrypt = require(game:GetService("ReplicatedStorage").Scrypt)
 Scrypt.Init():Wait()
 
@@ -10,6 +11,8 @@ local TeamService = Scrypt.GetService("TeamService")
 local StairService = Scrypt.GetService("StairService")
 local CurrencyService = Scrypt.GetService("CurrencyService")
 local GameConfig = Scrypt.GetModule("GameConfig")
+local ProximityService = Scrypt.GetService("ProximityService")
+local PlayerService = Scrypt.GetService("PlayerService")
 local RoundEvents
 
 -- Handles all functions for when the character gets added
@@ -105,7 +108,15 @@ RoundEndedEvent:Connect(function()
             Tool:Destroy()
         end
     end
-    
+end)
+
+
+ProximityService.ListenForProximity("BuyUpgrade1", function(Player: Player)
+    PlayerService.BuyTeamUpgrade(Player, "StudsPerSecond")
+end)
+
+ProximityService.ListenForProximity("BuyUpgrade2", function(Player: Player)
+    PlayerService.BuyTeamUpgrade(Player, "CoinsPerBlock")
 end)
 
 game:BindToClose(function()

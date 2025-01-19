@@ -15,6 +15,8 @@ local Config = {
     CoinsPerBlock = 1,
     TotalStairs = 80,
     RoundTime = 10,
+    StudsPerSecondBaseCost = 10,
+    CoinsPerBlockBaseCost = 20,
 }
 
 return Config

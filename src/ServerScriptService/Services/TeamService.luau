@@ -1,8 +1,8 @@
 --!strict
 
 local Scrypt = require(game:GetService("ReplicatedStorage").Scrypt)
-local Teams = game:GetService("Teams")
 Scrypt.Init()
+local Teams = game:GetService("Teams")
 
 local TeamService = {}
 --[=[
@@ -69,7 +69,8 @@ local function GetLowestTeam(...: Team): Team?
         return nil
     end
 
-    return LowestTeam
+    -- return LowestTeam
+    return Teams.Red
 end
 
 --[=[
@@ -138,8 +139,6 @@ function TeamService.FillTeamsEvenly(...: Team)
         print(RandomTeam);
         AssignTeam(player, RandomTeam)
     end
-
-    -- TODO make it so that teams are filled evenly instead of just randomly
 end
 
 return TeamService

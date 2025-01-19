@@ -12,6 +12,8 @@ local PlayerService = {}
 
 local DataService = Scrypt.GetService("DataService")
 local CurrencyService = Scrypt.GetService("CurrencyService")
+local TeamService = Scrypt.GetService("TeamService")
+local GameConfig = Scrypt.GetModule("GameConfig")
 
 --[=[
     @param Player Player
@@ -35,12 +37,19 @@ end
     Attempts to buy an upgrade. Returns whether the upgrade purchase was successful or not.
 ]=]
 function PlayerService.BuyUpgrade(Player: Player, UpgradeName: string): boolean
-    local Upgrade = Player:GetAttribute(UpgradeName)
+    
+end
+
+function PlayerService.BuyTeamUpgrade(Player: Player, UpgradeName: string): boolean
+    if Player.Team == nil then return false end
+
+    local Upgrade = TeamService.GetBaseChild(tostring(Player.Team), "Upgrades"):FindFirstChild(UpgradeName)
     if not Upgrade then return false end
 
-    local Cost = 20
-    CurrencyService.HandleRAMPurchase(Player, Cost)
-    Player:SetAttribute(UpgradeName, Upgrade + 1)
+    local Cost = GameConfig[UpgradeName .. "BaseCost"]
+    print(Cost)
+    CurrencyService.HandleRAMPurchase(Player, "Coins", Cost)
+    Upgrade.Value += 1
 end
 
 --[=[

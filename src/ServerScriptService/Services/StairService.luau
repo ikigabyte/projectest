@@ -103,7 +103,6 @@ local function GetBlocksModel(Player: Player, blockUpgrade: number): Model
     local tempModel = Instance.new("Model")
     local Skin = PlayerService.GetBlockSkin(Player)
     local TeamColor = TeamColors[tostring(Player.Team)]
-    print(TeamColor)
     local RandomGenerator = Random.new()
     local baseBlock = nil
 
@@ -197,7 +196,13 @@ local function processBlockPlacementQueue(queueToProcess: string, staircaseModel
             table.sort(sortedBlocks, sortBlocksByName)
             
             -- Give currency reward to player
-            CurrencyService.AddRAMCurrencyToPlayer(player, "Coins", blocks*10)
+            local CoinsToGive = blocks*10
+            local UpgradeLevel = TeamService.GetBaseChild(tostring(player.Team), "Upgrades"):FindFirstChild("CoinsPerBlock").Value
+            if UpgradeLevel then
+                CoinsToGive *= UpgradeLevel
+            end
+            
+            CurrencyService.AddRAMCurrencyToPlayer(player, "Coins", CoinsToGive)
             
             -- Process blocks up to requested amount
             local processedBlocks = 0
@@ -324,10 +329,8 @@ local function setupTeamZone(CollectionPart: BasePart): RBXScriptConnection
     local Connection
     Connection = TeamZone.playerEntered:Connect(
         function(player: Player) -- Calculate how many the player needs to grab and how many are in the base
-            -- print("Player entered the zone")
             if CollectionPart:GetAttribute("BlockCount") == 0 then return end
             StairService.PickupBlocks(player, CollectionPart)
-            -- print("Now giving player a block to do something here with")
         end
     )
 
@@ -419,7 +422,7 @@ function StairService.StartSpawning(Team: string): () -> ()
     end)
     
     
-    task.defer(function() -- Might have to change this to spawn
+    task.defer(function()
         while CollectionPart:GetAttribute("IsRunning") do
             Studs = CollectionPart.Parent.Upgrades.StudsPerSecond.Value
             CollectionPart:SetAttribute("BlockCount", (CollectionPart:GetAttribute("BlockCount"):: number) + Studs or 1)
