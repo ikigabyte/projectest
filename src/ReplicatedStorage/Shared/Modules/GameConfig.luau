@@ -14,7 +14,7 @@ local Config = {
     BaseStudsPerSecond = 1,
     CoinsPerBlock = 1,
     TotalStairs = 80,
-    RoundTime = 10,
+    RoundTime = 30,
     StudsPerSecondBaseCost = 10,
     CoinsPerBlockBaseCost = 20,
 }

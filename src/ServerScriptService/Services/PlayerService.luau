@@ -46,7 +46,7 @@ function PlayerService.BuyTeamUpgrade(Player: Player, UpgradeName: string): bool
     local Upgrade = TeamService.GetBaseChild(tostring(Player.Team), "Upgrades"):FindFirstChild(UpgradeName)
     if not Upgrade then return false end
 
-    local Cost = GameConfig[UpgradeName .. "BaseCost"]
+    local Cost = GameConfig[UpgradeName .. "BaseCost"]*(Upgrade.Value)
     print(Cost)
     CurrencyService.HandleRAMPurchase(Player, "Coins", Cost)
     Upgrade.Value += 1
