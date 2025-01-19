@@ -96,14 +96,9 @@ Scrypt.ClientNetwork.ListenForPacket("StairProcess", true, function(packetData)
 	
 end)
 
-
-
 Scrypt.ClientNetwork.ListenForPacket("CurrencyUpdate", true, function(packetData)
 	Scrypt.GUI.GameGui.Cash.Amount.Text = tostring(packetData)
 end)
-
-
-
 
 -- function to convert seconds into a time format (TODO MOVE TO SEPARATE SCRIPT)
 local function secondsToTime(seconds: number): string

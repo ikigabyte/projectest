@@ -3,13 +3,27 @@ local Scrypt = require(game:GetService("ReplicatedStorage").Scrypt)
 Scrypt.Init()
 
 local CurrencyService = {}
+--[=[
+    @class CurrencyService
+    @server
+]=]
+
 local DataService = Scrypt.GetService("DataService")
 
 -- Types
+--[=[
+    @type RAMCurrency {[Player]: number}
+    @within CurrencyService
+    A RAM currency is a currency that does not save across game sessions.
+]=]
 type RAMCurrency = {
     [Player]: number
 }
 
+--[=[
+    @type RAMCurrencies {[string]: RAMCurrency}
+    @within CurrencyService
+]=]
 type RAMCurrencies = {
     [string]: RAMCurrency
 }
@@ -30,7 +44,13 @@ local function RAMMultipliers(Player: Player)
     return 1 -- TODO Add gamepass checks
 end
 
--- Add currency to player
+--[=[
+    @param Player Player
+    @param CurrencyName string
+    @param Amount number
+    @within CurrencyService
+    Adds currency to the player's data.
+]=]
 function CurrencyService.AddCurrency(Player: Player, CurrencyName: string, Amount: number)
     local Data = DataService.GetPlayerDataAsync(Player)
     assert(Data, "Player data not found")
@@ -38,7 +58,13 @@ function CurrencyService.AddCurrency(Player: Player, CurrencyName: string, Amoun
     Data[CurrencyName] += Amount*Multipliers(Player)
 end
 
--- Remove currency from player
+--[=[
+    @param Player Player
+    @param CurrencyName string
+    @param Amount number
+    @within CurrencyService
+    Removes currency from the player's data.
+]=]
 function CurrencyService.RemoveCurrency(Player: Player, CurrencyName: string, Amount: number)
     local Data = DataService.GetPlayerDataAsync(Player)
     assert(Data, "Player data not found")
@@ -46,7 +72,28 @@ function CurrencyService.RemoveCurrency(Player: Player, CurrencyName: string, Am
     Data[CurrencyName] -= Amount
 end
 
--- Handles purchases with saved currencies
+--[=[
+    @param Player Player
+    @param CurrencyName string
+    @param Amount number
+    @within CurrencyService
+    Sets a value on a currency for the player.
+]=]
+function CurrencyService.SetCurrency(Player: Player, CurrencyName: string, Amount: number)
+    local Data = DataService.GetPlayerDataAsync(Player)
+    assert(Data, "Player data not found")
+    assert(Data[CurrencyName], `Currency '{CurrencyName}' not found in PlayerData`)
+    Data[CurrencyName] = Amount
+end
+
+--[=[
+    @param Player Player
+    @param CurrencyName string
+    @param Cost number
+    @return boolean
+    @within CurrencyService
+    Handles purchases with saved currencies.
+]=]
 function CurrencyService.HandlePurchase(Player: Player, CurrencyName: string, Cost: number): boolean
     local Data = DataService.GetPlayerDataAsync(Player)
     assert(Data, "Player data not found")
@@ -60,7 +107,13 @@ function CurrencyService.HandlePurchase(Player: Player, CurrencyName: string, Co
     return true
 end
 
--- Get the player's currency
+--[=[
+    @param Player Player
+    @param CurrencyName string
+    @return number
+    @within CurrencyService
+    Returns a player's currency.
+]=]
 function CurrencyService.GetPlayerCurrency(Player: Player, CurrencyName: string): number
     local Data = DataService.GetPlayerDataAsync(Player)
     assert(Data, "Player data not found")
@@ -80,7 +133,13 @@ local function AddPlayerToRAMCurrencyType(Player: Player, CurrencyName: string)
     CurrencyType[Player] = 0
 end
 
--- Add memory currency to player
+--[=[
+    @param Player Player
+    @param CurrencyName string
+    @param Amount number
+    @within CurrencyService
+    Adds RAM currency to the player.
+]=]
 function CurrencyService.AddRAMCurrencyToPlayer(Player: Player, CurrencyName: string, Amount: number)
     local CurrencyType = InMemoryCurrencies[CurrencyName]
     assert(CurrencyType, "Currency does not exist!")
@@ -98,7 +157,13 @@ function CurrencyService.AddRAMCurrencyToPlayer(Player: Player, CurrencyName: st
     -- TODO Make sure to check if the player has any type of vip
 end
 
--- Remove memory currency from player
+--[=[
+    @param Player Player
+    @param CurrencyName string
+    @param Amount number
+    @within CurrencyService
+    Removes RAM currency from the player.
+]=]
 function CurrencyService.RemoveRAMCurrencyFromPlayer(Player: Player, CurrencyName: string, Amount: number)
     local CurrencyType = InMemoryCurrencies[CurrencyName]
     assert(CurrencyType, "Currency does not exist!")
@@ -111,7 +176,13 @@ function CurrencyService.RemoveRAMCurrencyFromPlayer(Player: Player, CurrencyNam
     CurrencyType[Player] -= Amount
 end
 
--- Sets memory currency for player
+--[=[
+    @param Player Player
+    @param CurrencyName string
+    @param Amount number
+    @within CurrencyService
+    Sets a value on a RAM currency for the player.
+]=]
 function CurrencyService.SetRAMCurrencyForPlayer(Player: Player, CurrencyName: string, Amount: number)
     local CurrencyType = InMemoryCurrencies[CurrencyName]
     assert(CurrencyType, "Currency does not exist!")
@@ -123,7 +194,14 @@ function CurrencyService.SetRAMCurrencyForPlayer(Player: Player, CurrencyName: s
     CurrencyType[Player] = Amount
 end
 
--- Handles purchases with memory currencies
+--[=[
+    @param Player Player
+    @param CurrencyName string
+    @param Cost number
+    @return boolean
+    @within CurrencyService
+    Handles purchases with RAM currencies. Returns true or false based on if it was successful.
+]=]
 function CurrencyService.HandleRAMPurchase(Player: Player, CurrencyName: string, Cost: number): boolean
     local CurrencyType = InMemoryCurrencies[CurrencyName]
     assert(CurrencyType, "Currency does not exist!")
@@ -141,7 +219,13 @@ function CurrencyService.HandleRAMPurchase(Player: Player, CurrencyName: string,
     return true
 end
 
--- Get the player's currency
+--[=[
+    @param Player Player
+    @param CurrencyName string
+    @return number
+    @within CurrencyService
+    Returns a player's RAM currency.
+]=]
 function CurrencyService.GetPlayerRAMCurrency(Player: Player, CurrencyName: string): number
     local CurrencyType = InMemoryCurrencies[CurrencyName]
     assert(CurrencyType, "Currency does not exist!")
@@ -155,6 +239,11 @@ function CurrencyService.GetPlayerRAMCurrency(Player: Player, CurrencyName: stri
 end
 
 -- Cleanup function
+--[=[
+    @param Player Player
+    @within CurrencyService
+    Erases a player from all currencies in a server. This should be used when you do not want to keep track of a player's RAM currencies anymore.
+]=]
 function CurrencyService.ErasePlayer(Player: Player)
     for name, currency: RAMCurrency in pairs(InMemoryCurrencies) do
         currency[Player] = nil

@@ -4,6 +4,11 @@ local Scrypt = require(game:GetService("ReplicatedStorage").Scrypt)
 Scrypt.Init()
 
 local StairService = {}
+--[=[
+    @class StairService
+    @server
+]=]
+
 local Zone = Scrypt.GetModule("Zone")
 local PlayerService = Scrypt.GetService("PlayerService")
 local TeamService = Scrypt.GetService("TeamService")
@@ -26,6 +31,10 @@ local TeamColors = {
     Blue = Color3.fromRGB(84, 138, 255)
 }
 
+--[=[
+    @type QueueRequest {Player: Player, Blocks: number}
+    @within StairService
+]=]
 type QueueRequest = {
     Player: Player,
     Blocks: number
@@ -351,7 +360,13 @@ function StairService.ResetStairs(Team: string)
     ))
 end
 
-function StairService.PickupBlocks(Player: Player, CollectionPart: Part) 
+--[=[
+    @param Player Player
+    @param CollectionPart BasePart
+    @within StairService
+    Picks up blocks from the collection part and gives them to the player.
+]=]
+function StairService.PickupBlocks(Player: Player, CollectionPart: Part)
     local Character = Player.Character
     assert(validateCharacter(Player), "Character validation failed.")
     
@@ -382,7 +397,13 @@ local function CreateStudsPack(CollectionPart: BasePart)
 end
 
 -- Start spawning blocks
-function StairService.StartSpawning(Team: string) -- ! It has to get both teams and start spawning the blocks in each respective zone
+--[=[
+    @param Team string
+    @within StairService
+    @return function
+    Starts spawning blocks for a team. Returns a cleanup funciton which should be run on round end.
+]=]
+function StairService.StartSpawning(Team: string): () -> ()
 	local CollectionPart: Part = TeamService.GetBaseChild(Team, "CollectionPart"):: Part
     CollectionPart:SetAttribute("BlockCount", 0)
     CollectionPart:SetAttribute("IsRunning", true)
@@ -400,7 +421,6 @@ function StairService.StartSpawning(Team: string) -- ! It has to get both teams 
     
     task.defer(function() -- Might have to change this to spawn
         while CollectionPart:GetAttribute("IsRunning") do
-            print(CollectionPart:GetAttribute("IsRunning"))
             Studs = CollectionPart.Parent.Upgrades.StudsPerSecond.Value
             CollectionPart:SetAttribute("BlockCount", (CollectionPart:GetAttribute("BlockCount"):: number) + Studs or 1)
 
@@ -410,7 +430,6 @@ function StairService.StartSpawning(Team: string) -- ! It has to get both teams 
 
     return function()
         -- Cleanup
-        print("CLEANUP")
         CollectionPart:SetAttribute("IsRunning", false)
         CollectionPart:SetAttribute("BlockCount", 0)
         CollectionPart.Info.Frame.Title.Text = CollectionPart:GetAttribute("BlockCount")

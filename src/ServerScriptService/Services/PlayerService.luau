@@ -5,9 +5,20 @@ local Scrypt = require(game:GetService("ReplicatedStorage").Scrypt)
 Scrypt.Init()
 
 local PlayerService = {}
+--[=[
+    @class PlayerService
+    @server
+]=]
+
 local DataService = Scrypt.GetService("DataService")
 local CurrencyService = Scrypt.GetService("CurrencyService")
 
+--[=[
+    @param Player Player
+    @param UpgradeName string
+    @within PlayerService
+    Gives the player an upgrade.
+]=]
 function PlayerService.GiveUpgrade(Player: Player, UpgradeName: string)
     local Level = Player:GetAttribute(UpgradeName)
     if not Level then Level = 1 end
@@ -16,6 +27,13 @@ function PlayerService.GiveUpgrade(Player: Player, UpgradeName: string)
     Player:SetAttribute(UpgradeName, Level)
 end
 
+--[=[
+    @param Player Player
+    @param UpgradeName string
+    @within PlayerService
+    @return boolean
+    Attempts to buy an upgrade. Returns whether the upgrade purchase was successful or not.
+]=]
 function PlayerService.BuyUpgrade(Player: Player, UpgradeName: string): boolean
     local Upgrade = Player:GetAttribute(UpgradeName)
     if not Upgrade then return false end
@@ -25,6 +43,13 @@ function PlayerService.BuyUpgrade(Player: Player, UpgradeName: string): boolean
     Player:SetAttribute(UpgradeName, Upgrade + 1)
 end
 
+--[=[
+    @param Player Player
+    @param UpgradeName string
+    @within PlayerService
+    @return any?
+    Returns an upgrade for the player.
+]=]
 function PlayerService.GetUpgrade(Player: Player, UpgradeName: string): any?
     local Upgrade = Player:GetAttribute(UpgradeName)
     if not Upgrade then return nil end
@@ -32,6 +57,13 @@ function PlayerService.GetUpgrade(Player: Player, UpgradeName: string): any?
     return Upgrade
 end
 
+--[=[
+    @param Player Player
+    @within PlayerService
+    @return number
+    @unreleased
+    Returns the maximum amount of blocks a player can hold.
+]=]
 function PlayerService.GetMaxBlocksHold(Player: Player): number
     local Amount = Player:GetAttribute("MaxBlocksHold")
 
@@ -42,6 +74,12 @@ function PlayerService.GetMaxBlocksHold(Player: Player): number
     return Amount
 end
 
+--[=[
+    @param Player Player
+    @within PlayerService
+    @return Team?
+    Returns the team the player is assigned to.
+]=]
 function PlayerService.GetTeam(Player: Player): Team?
     if Player.Team == nil then
         return nil
@@ -50,6 +88,12 @@ function PlayerService.GetTeam(Player: Player): Team?
     return Player.Team
 end
 
+--[=[
+    @param Player Player
+    @within PlayerService
+    @return string
+    Returns the block skin of the player.
+]=]
 function PlayerService.GetBlockSkin(Player : Player)
     local Data = DataService.GetPlayerDataAsync(Player)
     assert(Data, "Player data not found")

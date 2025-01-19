@@ -5,8 +5,18 @@ Scrypt.Init()
 
 local MarketplaceService = Scrypt.Services.MarketplaceService
 local GamepassService = {}
+--[=[
+    @class GamepassService
+    @server
+]=]
 
--- Check if the player has the gamepass
+--[=[
+    @param Player Player
+    @param GamepassId number
+    @within GamepassService
+    @return boolean
+    Returns whether the player has a gamepass or not.
+]=]
 function GamepassService.HasGamepass(Player: Player, GamepassId: number): boolean
     local success, hasGamepass = pcall(function()
         return MarketplaceService:UserOwnsGamePassAsync(Player.UserId, GamepassId)
@@ -15,7 +25,13 @@ function GamepassService.HasGamepass(Player: Player, GamepassId: number): boolea
     return success and hasGamepass
 end
 
--- Prommpt the player to buy the gamepass
+--[=[
+    @param Player Player
+    @param GamepassId number
+    @within GamepassService
+    @return boolean
+    Prompts the player to buy a gamepass. Returns whether the prompt was successful or not.
+]=]
 function GamepassService.PromptGamePassPurchase(Player: Player, GamepassId: number): boolean
     local success, result = pcall(function()
         return MarketplaceService:PromptGamePassPurchase(Player, GamepassId)
@@ -24,7 +40,12 @@ function GamepassService.PromptGamePassPurchase(Player: Player, GamepassId: numb
     return success
 end
 
--- Get the gamepass info
+--[=[
+    @param GamepassId number
+    @within GamepassService
+    @return any
+    Returns a gamepass product info table.
+]=]
 function GamepassService.GetGamepassInfo(GamepassId: number): any
     -- Get the gamepass info
     local success, info = pcall(function()
@@ -35,13 +56,26 @@ function GamepassService.GetGamepassInfo(GamepassId: number): any
     return info
 end
 
+--[=[
+    @param Player Player
+    @param GamepassId number
+    @within GamepassService
+    @unreleased
+    Adds a gamepass to the player's data.
+]=]
 function GamepassService.AddPassToData(Player: Player, GamepassId: number)
     -- TODO once we add a proper data system
 end
 
+--[=[
+    @param Player Player
+    @param GamepassId number
+    @within GamepassService
+    @unreleased
+    Removes a gamepass from the player's data.
+]=]
 function GamepassService.RemovePassFromData(Player: Player, GamepassId: number)
     -- TODO once we add a proper data system
 end
-
 
 return GamepassService

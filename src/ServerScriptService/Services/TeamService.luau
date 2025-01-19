@@ -5,7 +5,15 @@ local Teams = game:GetService("Teams")
 Scrypt.Init()
 
 local TeamService = {}
+--[=[
+    @class TeamService
+    @server
+]=]
 
+--[=[
+    @type TeamParams {Name: string, TeamColor: BrickColor}
+    @within TeamService
+]=]
 type TeamParams = {
     Name: string,
     TeamColor: BrickColor,
@@ -24,6 +32,12 @@ local function AssignTeam(Player: Player, Team: Team)
     Player.Team = Team
 end
 
+--[=[
+    @param Player Player
+    @param Team Team
+    @within TeamService
+    Switches the player to the specified team.
+]=]
 function TeamService.SwitchTeams(Player: Player, Team: Team)
     -- TODO Make sure to check if the progress of the stairs is not over 90 percent
     AssignTeam(Player, Team)
@@ -58,7 +72,12 @@ local function GetLowestTeam(...: Team): Team?
     return LowestTeam
 end
 
--- General function to create teams
+--[=[
+    @param TeamsLocation Instance
+    @param ... TeamParams
+    @within TeamService
+    Creates teams with the specified parameters.
+]=]
 function TeamService.CreateTeams(TeamsLocation: Instance, ...: TeamParams): ...Team
     local TeamData = {...}
     local Teams = {}
@@ -71,6 +90,13 @@ function TeamService.CreateTeams(TeamsLocation: Instance, ...: TeamParams): ...T
     return unpack(Teams):: Team
 end
 
+--[=[
+    @param TeamName string
+    @param ChildName string?
+    @within TeamService
+    @return Folder
+    Gets a base child from the specified team.
+]=]
 function TeamService.GetBaseChild(TeamName: string, ChildName: string?): Folder
     assert(TeamName, "Team name not provided.")
     assert(ChildName, "Child name not provided.")
@@ -84,6 +110,11 @@ function TeamService.GetBaseChild(TeamName: string, ChildName: string?): Folder
     return Child:: Folder
 end
 
+--[=[
+    @param ...
+    @within TeamService
+    Fills teams evenly with players.
+]=]
 function TeamService.FillTeamsEvenly(...: Team)
     local Seed = os.clock()*10000
     local RandomSet = Random.new(Seed)

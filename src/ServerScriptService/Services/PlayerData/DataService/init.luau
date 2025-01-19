@@ -6,6 +6,11 @@ Scrypt.Init()
 
 -- TODO
 local DataService = {}
+--[=[
+    @class DataService
+    @server
+]=]
+
 local DataTemplate = require(script.Template)
 -- local ProfileService = require(script.ProfileService)
 
@@ -21,17 +26,35 @@ if Scrypt.Services.RunService:IsStudio() == true and DEBUG then
 	-- GameProfileStore = GameProfileStore.Mock
 end
 
--- Returns the player's data
+--[=[
+    @param Player Player
+    @return {[string]: any}
+    @within DataService
+    @unreleased
+    Returns the player's data.
+]=]
 function DataService.GetPlayerDataAsync(Player: Player): {[string]: any}
     return DataTemplate
 end
 
--- Returns if the player's data has been loaded
+--[=[
+    @param Player Player
+    @return boolean
+    @within DataService
+    @unreleased
+    Returns if the player's data has been loaded.
+]=]
 function DataService.DataLoaded(Player: Player): boolean
     return true
 end
 
--- Permanently deletes the player's data
+--[=[
+    @param Player Player
+    @return boolean
+    @within DataService
+    @unreleased
+    Permanently deletes the player's data.
+]=]
 function DataService.DeleteDataAsync(Player: Player): boolean
     return true
 end

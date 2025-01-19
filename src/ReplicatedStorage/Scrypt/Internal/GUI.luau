@@ -1,3 +1,15 @@
+--[[
+	@details
+	Returns all GuiObject(s) in the PlayerGui
+
+	@file GUI.lua (Scrypt)
+    @client
+    @author zblox164
+    @version 0.0.42-alpha
+    @since 2024-12-17
+--]]
+
+
 local Scrypt = require(game:GetService("ReplicatedStorage").Scrypt)
 Scrypt.Init()
 
@@ -21,7 +33,7 @@ local function WaitForPlayerGui(): PlayerGui
 	return PlayerGui:: PlayerGui
 end
 
----- Scan The GUI To Add The Index To It
+-- Scan The GUI To Add The Index To It
 local function ScanUI(Element: GuiObject | PlayerGui, Parent: Instance?)
 	-- Loops Through All The GUI Instances
 	for _, Child in ipairs(Element:GetChildren()) do

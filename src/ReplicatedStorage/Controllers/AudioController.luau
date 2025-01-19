@@ -6,6 +6,10 @@ local Utilities = Scrypt.GetModule("Utilities")
 local SoundService: SoundService = Scrypt.Services.SoundService
 
 local AudioController = {}
+--[=[
+	@class AudioController
+	@client
+]=]
 
 -- Gets the specified sound in the sounds folder
 local function GetSound(SoundName: string, Parent: Instance?): Sound?
@@ -41,15 +45,21 @@ local function CreateSoundPart(Position: Vector3): Part
 	return NewPart
 end
 
--- Loops a sound
-function AudioController.LoopSound(SoundName: string, Volume: number?): Sound | boolean
+--[=[
+	@param SoundName string
+	@param Volume number?
+	@return Sound?
+	@within AudioController
+	Loops a sound
+]=]
+function AudioController.LoopSound(SoundName: string, Volume: number?): Sound?
 	assert(SoundName and typeof(SoundName) == "string", `SoundName is not valid. Expected string got: {typeof(SoundName)}`)
 	
 	local PlayingSounds = SoundService.SoundsPlaying
-	if PlayingSounds:FindFirstChild(SoundName) then return false end
+	if PlayingSounds:FindFirstChild(SoundName) then return nil end
 	
 	local Sound = GetSound(SoundName)
-	if not Sound then return false end
+	if not Sound then return nil end
 
 	-- Default values
 	local SoundVolume: number = Volume or 0.5
@@ -62,6 +72,7 @@ function AudioController.LoopSound(SoundName: string, Volume: number?): Sound | 
 	
 	return Sound
 end
+
 local function GetRandomPitch(variationAmount: number)
     -- Ensure variationAmount is valid
     variationAmount = math.clamp(variationAmount, 0, 1) -- Prevent it from exceeding valid bounds
@@ -74,8 +85,19 @@ local function GetRandomPitch(variationAmount: number)
     local randomPitch = math.random(minPitch * 100, maxPitch * 100) / 100
     return randomPitch
 end
--- Plays a Sound X times
-function AudioController.PlaySound(SoundName: string, Plays: number?, Cooldown: number?, Volume: number?, Position: Vector3?, PitchVariation): boolean
+
+--[=[
+	@param SoundName string
+	@param Plays number?
+	@param Cooldown number?
+	@param Volume number?
+	@param Position Vector3?
+	@param PitchVariation number?
+	@return boolean
+	@within AudioController
+	Plays a Sound X times
+]=]
+function AudioController.PlaySound(SoundName: string, Plays: number?, Cooldown: number?, Volume: number?, Position: Vector3?, PitchVariation: number?): boolean
 	assert(SoundName and typeof(SoundName) == "string", `SoundName is not valid. Expected string got: {typeof(SoundName)}`)
 	local Sound = GetSound(SoundName)
 	local SoundPart
@@ -113,7 +135,12 @@ function AudioController.PlaySound(SoundName: string, Plays: number?, Cooldown: 
 	return true
 end
 
--- Stops a playing sound from playing
+--[=[
+	@param SoundName string
+	@return boolean
+	@within AudioController
+	Stops a sound from playing
+]=]
 function AudioController.StopSound(SoundName: string): boolean
 	assert(SoundName and typeof(SoundName) == "string", `SoundName is not valid. Expected string got: {typeof(SoundName)}`)
 	

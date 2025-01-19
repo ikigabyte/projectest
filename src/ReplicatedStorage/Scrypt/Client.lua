@@ -31,11 +31,21 @@
 ]=]
 
 --[=[
+	@type GUI {[string]: {[string]: GuiObject}}
+	@within ScryptClient
+]=]
+
+--[=[
 	@prop RegExp RegularExpressionClass
 	@within ScryptClient
 	Regular expressions module published by Roblox. See more information in RegEx.lua.
 ]=]
 
+--[=[
+	@prop GUI GUI
+	@within ScryptClient
+	Contains a dictionary of GUI objects.
+]=]
 
 --[=[
 	@prop Promise PromiseClass

@@ -5,11 +5,21 @@ Scrypt.Init()
 
 local ReplicatedStorage: ReplicatedStorage = Scrypt.Services.ReplicatedStorage
 local TweenService: TweenService = Scrypt.Services.TweenService
-local BlockControler = {}
+local BlockController = {}
+
+--[=[
+    @class BlockController
+    @client
+]=]
 
 local AudioController = Scrypt.GetController('AudioController')
 local CurrentPlayingAnimation : AnimationTrack
 
+
+--[=[
+    @type BlockPacketData {Status boolean, VectorPlacement Vector3, AmmountOfBlocks IntValue}
+    @within BlockController
+]=]
 type BlockPacketData = {
     Status: boolean,
     VectorPlacement: Vector3,
@@ -38,8 +48,13 @@ local function StartTracking()
     end)
 end
 
--- Function to handle visual block placement animation
-function BlockControler.HandleBlockPlacement(PlacementVector : Vector3, AmmountOfBlocks : IntValue)
+--[=[
+    @param PlacementVector Vector3
+    @param AmmountOfBlocks IntValue
+    @within BlockController
+    Function to handle visual block placement animation
+]=]
+function BlockController.HandleBlockPlacement(PlacementVector : Vector3, AmmountOfBlocks : IntValue)
     -- Stop any currently playing animation
     if CurrentPlayingAnimation then
         CurrentPlayingAnimation:Stop()
@@ -66,8 +81,11 @@ function BlockControler.HandleBlockPlacement(PlacementVector : Vector3, AmmountO
     end)
 end
 
--- Function to handle block placement system
-function BlockControler.HandleBlocks()
+--[=[
+    @within BlockController
+    Function to handle block placement system
+]=]
+function BlockController.HandleBlocks()
     -- Listen for block tool network packets
     Scrypt.ClientNetwork.ListenForPacket("BlockTool", true, function(packetData : BlockPacketData)
         if packetData.Status == true then
@@ -82,9 +100,9 @@ function BlockControler.HandleBlocks()
             StartTracking()
         elseif packetData.Status == false then
             -- Handle block placement animation
-            BlockControler.HandleBlockPlacement(packetData.VectorPlacement)
+            BlockController.HandleBlockPlacement(packetData.VectorPlacement)
         end      
     end)
 end
 
-return BlockControler
+return BlockController
