@@ -32,11 +32,12 @@ type RulesType = {
     PlayersNeeded: number,
 }
 
+-- Changes all the rules to be part of the config
 local RULES: RulesType = {
-    IntermissionTime = 10,
-    SpawnTime = 5,
+    IntermissionTime = GameConfig.Intermission,
+    SpawnTime = GameConfig.SpawnTime,
     RoundTime = GameConfig.RoundTime,
-    PlayersNeeded = 1,
+    PlayersNeeded = GameConfig.SpawnTime,
 }
 
 local IntermissionStartedEvent = Scrypt.CreateSignal("IntermissionStarted") 

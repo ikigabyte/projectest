@@ -20,6 +20,8 @@ local Config = {
     RoundTime = 3000,
     StudsPerSecondBaseCost = 10,
     CoinsPerBlockBaseCost = 20,
+    SpawnTime = 5,
+    Intermission = 300,
 }
 
 return Config

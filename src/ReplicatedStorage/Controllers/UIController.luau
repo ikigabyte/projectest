@@ -176,7 +176,6 @@ end
 
 UIController.SetupTopBarFeatures = function()
     local TopbarPlus = require(Scrypt.Services.ReplicatedStorage:FindFirstChild("TopbarPlus"):FindFirstChild("Icon"))
-
     -- local icon = TopbarPlus.new:setImage(asset)
 
     local muteSFXIcon
