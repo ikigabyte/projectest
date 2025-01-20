@@ -20,6 +20,8 @@ local CurrentPlayingAnimation : AnimationTrack
     @type BlockPacketData {Status boolean, VectorPlacement Vector3, AmmountOfBlocks IntValue}
     @within BlockController
 ]=]
+
+print("testing something")
 type BlockPacketData = {
     Status: boolean,
     VectorPlacement: Vector3,
