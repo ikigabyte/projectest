@@ -28,6 +28,8 @@ type RAMCurrencies = {
     [string]: RAMCurrency
 }
 
+
+
 -- Currencies that do not save across game sessions (named RAM as it's similar to RAM where data is temp)
 local InMemoryCurrencies: RAMCurrencies = {
     ["Coins"] = {}:: RAMCurrency,

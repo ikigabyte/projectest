@@ -5,18 +5,22 @@ local Player = Scrypt.LocalPlayer
 local ReplicatedStorage: ReplicatedStorage = Scrypt.Services.ReplicatedStorage
 local TweenModule = Scrypt.GetModule("TweenService2")
 local GameConfig = Scrypt.GetModule("GameConfig")
+local TextChatService = Scrypt.Services.TextChatService
 
 local BlockController = Scrypt.GetController("BlockController")
 local UIController = Scrypt.GetController("UIController")
 
+
 BlockController.HandleBlocks()
 UIController.SetupTopBarFeatures()
+
+
 
 -- Counts the number of valid stairs in a team's staircase
 local function CountTeamProgress(team: string)
 	local teamProgress = 0
 	
-	-- Find the team's base folder
+	-- Find the team's base folde
 	local teamFolder = workspace.Bases:FindFirstChild(team)
 	assert(teamFolder, "Team folder not found")
 
@@ -110,8 +114,10 @@ local function FormatToMinutes(Seconds: number): string
 	return string.format("%02d:%02d", Minutes, RemainingSeconds)
 end
 
+--! Figure out what the message is here and update the ROUND THING
 
 Scrypt.ClientNetwork.ListenForPacket("UpdateRoundTime", true, function(packetData)
+	
 	Scrypt.GUI.GameGui.ProgressFrame.Timer.TimerLabel.Text = FormatToMinutes(packetData)
 end)
 
@@ -121,3 +127,24 @@ Scrypt.ClientNetwork.ListenForPacket("UpdateProgressBar", true, UpdateProgressBa
 UIController.SetupHoverAnimation(Scrypt.GUI.MainGui.Buttons.Skins)
 UIController.SetupHoverAnimation(Scrypt.GUI.MainGui.Buttons.Shop)
 UIController.SetupHoverAnimation(Scrypt.GUI.MainGui.Buttons.SwitchTeams)
+
+
+Scrypt.ClientNetwork.ListenForPacket("ServerMessage", true, function(packetData)
+	print(packetData);
+	local props = packetData.Properties
+	local message = packetData.Message
+    local textChatMessageProperties = Instance.new("TextChatMessageProperties")
+    local PlayerColor = tostring(Player.Team)
+    if PlayerColor ~= "Red" and PlayerColor ~= "Blue" then
+        return
+    end
+    local formattedMessage = "<font color='rgb(255, 0, 0)'>[SERVER]</font> " .. message
+    TextChatService:DisplaySystemMessage(formattedMessage)
+	print("Received server message: " .. message)
+end)
+
+
+
+-- You have to carefully setup the big market across these regions
+
+-- Zone.fromRegion(game.Workspace.BigMarket)

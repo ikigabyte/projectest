@@ -11,9 +11,11 @@ local PlayerService = {}
 ]=]
 
 local DataService = Scrypt.GetService("DataService")
+local MarketplaceService : MarketplaceService = game:GetService("MarketplaceService")
 local CurrencyService = Scrypt.GetService("CurrencyService")
 local TeamService = Scrypt.GetService("TeamService")
 local GameConfig = Scrypt.GetModule("GameConfig")
+local Products = Scrypt.GetModule("Products")
 
 --[=[
     @param Player Player
@@ -62,7 +64,6 @@ end
 function PlayerService.GetUpgrade(Player: Player, UpgradeName: string): any?
     local Upgrade = Player:GetAttribute(UpgradeName)
     if not Upgrade then return nil end
-
     return Upgrade
 end
 
