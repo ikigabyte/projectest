@@ -17,6 +17,7 @@ local TeamService = Scrypt.GetService("TeamService")
 local GameConfig = Scrypt.GetModule("GameConfig")
 local Products = Scrypt.GetModule("Products")
 
+
 --[=[
     @param Player Player
     @param UpgradeName string

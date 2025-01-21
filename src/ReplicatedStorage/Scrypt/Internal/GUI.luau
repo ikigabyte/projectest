@@ -24,7 +24,7 @@ local PlayerGui: PlayerGui
 -- Function to wait for PlayerGui to be populated
 local function WaitForPlayerGui(): PlayerGui	
 	local PlayerGui = Scrypt.LocalPlayer:WaitForChild("PlayerGui")
-
+	
 	for _, ScreenUI in ipairs(Scrypt.Services.StarterGui:GetChildren():: {GuiObject}) do
 		if not ScreenUI:IsA("ScreenGui") then continue end
 		PlayerGui:WaitForChild(ScreenUI.Name)

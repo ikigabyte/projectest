@@ -8,10 +8,10 @@ local TweenService : TweenService = Scrypt.Services.TweenService
 local UIController = {}
 local AudioController = Scrypt.GetController("AudioController")
 local MouseHoverController = Scrypt.GetController("MouseController")
--- local PlayerSettings = {
---     SFX = true,
--- 	MUSIC = true,
--- }
+local PlayerSettings = {
+    SFX = true,
+	MUSIC = true,
+}
 local music = "rbxassetid://113748648632937"
 local muteMusic = "rbxassetid://121000796688227"
 local rewardAsset = "rbxassetid://129074893657038"
@@ -24,55 +24,19 @@ local function OnButtonClick(icon)
     icon:setImage(status and muteMusic or music)
 end
 
-
--- Turns off all the hidden frames that could be displayed to the user
-function UIController.TurnOffAllFrames()
-    for _, gui in pairs(Scrypt.GUI) do
-        if gui.Visible and gui.Parent.Name == "Hidden" then
-            gui.Visible = false
-            print("turned off this gui here")
-        end
-    end
+local function TurnOffAllFrames()
+    
+    
 end
 
-local function HandleCodeFrame()
-	local CodeFrame: Frame = Scrypt.GUI.MainGui.CodeFrame
-	CodeFrame.Visible = not CodeFrame.Visible
-	local TextBox: TextBox = CodeFrame.TextBox
-	TextBox.FocusLost:Connect(function()
-		local TextRedeem = TextBox.Text
-		print("invoking the server now")
-		-- Does this setup the connection everytime?
-		-- Scrypt.ServerNetwork:Invoke("RedeemCode", TextBox.Text)
-		local Data = Scrypt.ClientNetwork.RequestPacket("CodeRedeem", { Code = TextRedeem })
-		if Data then
-			print("the code has been succesfully redeemed")
-		else
-			print("the code was denied here")
-		end
-
-		-- CodeFrame.Visible = false
-	end)
-	-- Start the tweening animation here ehre
-end
-
--- Turns on the respective frame based on the name
-function  UIController.TurnOnRespectiveFrame(frameName : string)
-    -- print(Scrypt.GUI)
-    print(#Scrypt.GUI)
-    for _, gui in ipairs(Scrypt.GUI) do
-        print(gui.Name)
-    end
-
-    Scrypt.GUI.MainGui.Enabled = false
-
-    -- local GUI = Scrypt.GUI[frameName]
-  
-    assert(false, "Frame not found, skip")
+local function TurnOnRespectiveFrame(frameName : string)
+    local GUI = Scrypt.GUI[frameName]
+    assert(GUI, "Frame not found, skip")
     if GUI then
         GUI.Visible = true
         print("turning on this thing here")
     end 
+
 end
 
 local function onMouseEnter(buttonUI : ImageButton)
@@ -144,18 +108,7 @@ local function HandleMainSong(muteMusicIcon)
     end)
 end
 
-function UIController.TurnOnGui(NameOfGui : string, TurnOffAllFrames : boolean)
-    local GUI = Scrypt.GUI[NameOfGui]
-    -- assert(GUI, "Frame not found, skip")
-    if GUI then
-        GUI.Visible = true
-        -- Tween something here
-        print("turning on this thing here")
-    end 
-    if TurnOffAllFrames then
-        TurnOffAllFrames()
-    end
-end
+
 
 UIController.SpawnRandomCoins = function(numberOfIcons, iconOfCurrency: ImageLabel, framePositionAndCapture: Frame, finalPosition: UDim2)
     for i = 1, numberOfIcons do
@@ -238,11 +191,7 @@ UIController.SetupTopBarFeatures = function()
     local rewardIcon
     rewardIcon = TopbarPlus.new()
     :setImage(rewardAsset)
-    rewardIcon:setLabel("Codes")
-    :bindEvent("deselected", function()
-        HandleCodeFrame()
-    end)
-    :oneClick()
+    rewardIcon:setLabel("Rewards")
     -- print("set up all the top bar features here")
 
     local muteMusicIcon
@@ -267,7 +216,7 @@ end
 UIController.HandleCurrencyUpdate  = function(Ammount: numberincreaseOrDecrease)
     -- print(Scrypt.GUI)
     local PreviousAmmt = Scrypt.GUI.GameGui.Cash.Amount.Text
-    
+
     Scrypt.GUI.GameGui.Cash.Amount.Text = tostring(Ammount)
 	UIController.SpawnRandomCoins(
 		10,

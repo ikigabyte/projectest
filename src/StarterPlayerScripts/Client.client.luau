@@ -9,11 +9,12 @@ local TextChatService = Scrypt.Services.TextChatService
 
 local BlockController = Scrypt.GetController("BlockController")
 local UIController = Scrypt.GetController("UIController")
+local ZoneController = Scrypt.GetController("ZoneController")
 
 
+-- local test = Scrypt.ClientNetwork.EmptyRequest('GetPlayerCoins')
 BlockController.HandleBlocks()
 UIController.SetupTopBarFeatures()
-
 
 
 -- Counts the number of valid stairs in a team's staircase
@@ -47,6 +48,7 @@ local function GetTeamProgress(team: string): number
 	local Progress = teamProgress / Total
 	return Progress
 end
+
 
 -- Updates the UI progress bars for both teams
 local function UpdateProgressBar()
@@ -117,8 +119,7 @@ end
 --! Figure out what the message is here and update the ROUND THING
 
 Scrypt.ClientNetwork.ListenForPacket("UpdateRoundTime", true, function(packetData)
-	
-	Scrypt.GUI.GameGui.ProgressFrame.Timer.TimerLabel.Text = FormatToMinutes(packetData)
+	-- Scrypt.GUI.GameGui.ProgressFrame.Timer.TimerLabel.Text = FormatToMinutes(packetData)
 end)
 
 Scrypt.ClientNetwork.ListenForPacket("UpdateProgressBar", true, UpdateProgressBar)
@@ -143,6 +144,8 @@ Scrypt.ClientNetwork.ListenForPacket("ServerMessage", true, function(packetData)
 	print("Received server message: " .. message)
 end)
 
+
+ZoneController.InitateAllZones()
 
 
 -- You have to carefully setup the big market across these regions

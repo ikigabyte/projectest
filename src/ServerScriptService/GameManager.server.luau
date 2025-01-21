@@ -4,6 +4,7 @@ local Scrypt = require(game:GetService("ReplicatedStorage").Scrypt)
 Scrypt.Init():Wait()
 
 -- Services
+
 local RoundService = Scrypt.GetService("RoundService")
 local Teams = game:GetService("Teams")
 local Utilities = Scrypt.GetModule("Utilities")
@@ -13,7 +14,10 @@ local CurrencyService = Scrypt.GetService("CurrencyService")
 local GameConfig = Scrypt.GetModule("GameConfig")
 local ProximityService = Scrypt.GetService("ProximityService")
 local PlayerService = Scrypt.GetService("PlayerService")
+local RewardService = Scrypt.GetService('RewardService')
 local RoundEvents
+local CodeModule = Scrypt.GetModule("CodeModule") -- This will be replaced with a DataStore table eventually
+
 
 -- Handles all functions for when the character gets added
 local function CharacterAdded(Character: Model, Player: Player) 
@@ -119,6 +123,26 @@ ProximityService.ListenForProximity("BuyUpgrade2", function(Player: Player)
     PlayerService.BuyTeamUpgrade(Player, "CoinsPerBlock")
 end)
 
+
+Scrypt.ServerNetwork.ListenForRequest("CodeRedeem", function(Player, Data)
+    local Code :string = Data.Code
+    if Code == "" then
+        return true
+    end
+    
+    if CodeModule[Code] then
+        return true
+    end
+    local CodeRewards = CodeModule[Code]
+    print(CodeRewards);
+    RewardService.GiveReward(Player, CodeRewards)
+    return true
+    -- local Upgrades = PlayerService.GetTeamUpgrades(Player)
+    -- Scrypt.ServerNetwork.SendPacketToClient(Player, "UpdateTeamUpgrades", Upgrades)
+end)
+
+
+
 game:BindToClose(function()
     -- Cleanup
 end)
@@ -137,6 +161,7 @@ end)
 while true do
 	task.wait(1)
     if EndTime then
+        -- Scrypt.ServerNetwork.SendPacketToAllClients("UpdateProgressBar", (EndTime - os.time())/GameConfig.RoundTime, true)
         Scrypt.ServerNetwork.SendPacketToAllClients("UpdateRoundTime", EndTime - os.time(), true)
     end
 end
